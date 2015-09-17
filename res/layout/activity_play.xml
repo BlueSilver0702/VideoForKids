@@ -1,0 +1,129 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_1"
+    tools:context=".PlayerActivity" >
+	
+    <Button
+        android:id="@+id/btn_back"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_back" />
+
+    <Button
+        android:id="@+id/btn_play_prev"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_prev" />
+        
+    <Button
+        android:id="@+id/btn_play_next"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_next" />
+    
+    <ImageView
+        android:id="@+id/iv_player"
+        android:layout_height="1dp"/>
+    
+    <ImageView
+        android:layout_height="1dp"
+        android:src="@drawable/bottom_cover" />
+    
+    <Button
+        android:id="@+id/btn_player_cover"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"/>
+    
+    <Button
+        android:id="@+id/btn_player_order"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_left_2" />
+    
+    <Button
+        android:id="@+id/btn_player_repeat"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_left_1" />
+    
+    <TextView
+		    android:id="@+id/tv_player_time"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_alignParentLeft="true"
+		    android:layout_centerVertical="true"
+		    android:layout_marginLeft="86dp"
+		    android:text="00:00" />
+    
+    <TextView
+		    android:id="@+id/tv_player_title"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_alignParentLeft="true"
+		    android:layout_centerVertical="true"
+		    android:layout_marginLeft="86dp"
+		    android:text="Title is ..." />
+    
+    <Button
+        android:id="@+id/btn_player_start"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginLeft="38dp"
+        android:background="@drawable/btn_play_bg" />
+    
+	<RelativeLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="match_parent"
+	    android:background="@drawable/cover">
+	    <HorizontalScrollView
+	        android:id="@+id/sv_bottom"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentRight="true" >
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="match_parent"
+	            android:orientation="horizontal" >
+	        </LinearLayout>
+	    </HorizontalScrollView>
+	</RelativeLayout>
+	<RelativeLayout
+	    android:id="@+id/rl_full"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:background="@drawable/bg_1">
+	    <ImageView
+	        android:id="@+id/iv_full_video"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"/>
+		<Button
+	        android:id="@+id/btn_full_cover"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:background="@android:color/transparent" />
+		<TextView
+		    android:id="@+id/tv_full_title"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_alignParentLeft="true"
+		    android:layout_centerVertical="true"
+		    android:text="Title is ..." />
+	</RelativeLayout>
+</RelativeLayout>
