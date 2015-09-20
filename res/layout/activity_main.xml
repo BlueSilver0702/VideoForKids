@@ -3,7 +3,138 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
+<ViewFlipper
+		android:id="@+id/viewFlipper" 
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+    <RelativeLayout
+        android:id="@+id/rl_main"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@drawable/bg_1"         >
+	    
+	    <ImageView
+	        android:id="@+id/imageView2"
+	        android:layout_width="fill_parent"
+	        android:layout_height="2dp"
+	        android:layout_below="@+id/imageView1"
+	        android:background="@drawable/shart_line"
+	        android:src="@drawable/ic_launcher" />
+	
+	    <ImageView
+	        android:id="@+id/imageView1"
+	        android:layout_width="100dp"
+	        android:layout_height="84dp"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentTop="true"
+	        android:layout_marginLeft="15dp"
+	        android:layout_marginTop="8dp"
+	        android:src="@drawable/app_logo" />
+	
+	    <Button
+	        android:id="@+id/btn_main_total_icon"
+	        android:layout_width="34dp"
+	        android:layout_height="34dp"
+	        android:layout_alignBottom="@+id/imageView1"
+	        android:layout_marginBottom="3dp"
+	        android:layout_marginLeft="20dp"
+	        android:layout_toRightOf="@+id/imageView1"
+	        android:background="@drawable/btn_totalsong" />
+	
+	    <Button
+	        android:id="@+id/btn_main_total"
+	        android:layout_width="120dp"
+	        android:layout_height="25dp"
+	        android:layout_alignBaseline="@+id/btn_main_total_icon"
+	        android:layout_alignBottom="@+id/btn_main_total_icon"
+	        android:layout_marginLeft="-10dp"
+	        android:layout_toRightOf="@+id/btn_main_total_icon"
+	        android:background="@android:color/transparent"
+	        android:text="Toate cantecele"
+	        android:textColor="#fff"
+	        android:textSize="14sp" />
+	
+	    <Button
+	        android:id="@+id/btn_main_some_icon"
+	        android:layout_width="34dp"
+	        android:layout_height="34dp"
+	        android:layout_alignBottom="@+id/btn_main_total"
+	        android:layout_marginLeft="10dp"
+	        android:layout_toRightOf="@+id/btn_main_total"
+	        android:background="@drawable/btn_mysong" />
+	
+	    <Button
+	        android:id="@+id/btn_main_some"
+	        android:layout_width="120dp"
+	        android:layout_height="25dp"
+	        android:layout_alignBaseline="@+id/btn_main_some_icon"
+	        android:layout_alignBottom="@+id/btn_main_some_icon"
+	        android:layout_marginLeft="-10dp"
+	        android:layout_toRightOf="@+id/btn_main_some_icon"
+	        android:background="@android:color/transparent"
+	        android:text="Cantecele mele"
+	        android:textColor="#fff"
+	        android:textSize="14sp" />
+	
+	    <Button
+	        android:id="@+id/btn_main_setting"
+	        android:layout_width="21dp"
+	        android:layout_height="21dp"
+	        android:layout_alignBaseline="@+id/btn_main_some_icon"
+	        android:layout_alignBottom="@+id/btn_main_some_icon"
+	        android:layout_alignParentRight="true"
+	        android:layout_marginRight="14dp"
+	        android:background="@drawable/btn_setting" />
+	
+	    <HorizontalScrollView
+	        android:id="@+id/horizontalScrollView1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentRight="true"
+	        android:layout_below="@+id/imageView2" >
+	
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="match_parent"
+	            android:orientation="horizontal" >
+	        </LinearLayout>
+	    </HorizontalScrollView>
 
+	    <ImageView
+	        android:id="@+id/imageView3"
+	        android:layout_width="140dp"
+	        android:layout_height="25dp"
+	        android:layout_alignRight="@+id/btn_main_setting"
+	        android:layout_alignTop="@+id/imageView1"
+	        android:layout_marginTop="10dp"
+	        android:src="@drawable/search_bg" />
+
+	    <Button
+	        android:id="@+id/btn_search_cancel"
+	        android:layout_width="18dp"
+	        android:layout_height="16dp"
+	        android:layout_alignTop="@+id/imageView3"
+	        android:layout_alignRight="@+id/imageView3"
+	        android:layout_marginTop="5dp"
+	        android:layout_marginRight="2dp"
+	        android:background="@drawable/search_cancel" />
+	    
+	    <EditText
+	        android:id="@+id/editText1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignBottom="@+id/imageView3"
+	        android:layout_alignLeft="@+id/imageView3"
+	        android:layout_alignTop="@+id/imageView3"
+	        android:layout_toLeftOf="@+id/btn_search_cancel"
+	        android:paddingLeft="7dp"
+	        android:background="@android:color/transparent"
+	        android:hint="Cauta meledie"
+	        android:textSize="12sp" />
+
+	</RelativeLayout> 
     <RelativeLayout
         android:id="@+id/rl_setting"
 	    android:layout_width="fill_parent"
@@ -88,14 +219,17 @@
 		    android:layout_marginTop="5dp"
 		    android:src="@drawable/shart_line" />
 		
+		
 		<LinearLayout
 		    android:id="@+id/ll_setting_tab1"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
 		    android:layout_alignTop="@+id/iv_setting_bg"
 		    android:layout_alignLeft="@+id/iv_setting_bg"
 		    android:layout_alignRight="@+id/iv_setting_bg"
-		    android:layout_height="wrap_content"
 		    android:paddingLeft="20dp"
-		    android:paddingTop="13dp">
+		    android:paddingTop="13dp"
+		    android:visibility="invisible">
     		<ImageView
 			    android:layout_width="32dp"
 			    android:layout_height="32dp"
@@ -109,9 +243,43 @@
                android:textColor="#fff"
                android:textSize="15sp" />
 
-
     	</LinearLayout>
-
+		
+		<LinearLayout
+		    android:id="@+id/ll_setting_tab2"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_alignTop="@+id/iv_setting_bg"
+		    android:layout_alignLeft="@+id/iv_setting_bg"
+		    android:layout_alignRight="@+id/iv_setting_bg"
+		    android:paddingLeft="20dp"
+		    android:paddingTop="13dp">
+    		<ImageView
+			    android:layout_width="32dp"
+			    android:layout_height="32dp"
+			    android:background="@drawable/setting_item2_icon" />
+    		<RelativeLayout
+    		    android:layout_width="wrap_content"
+    		    android:layout_height="fill_parent">
+    		    <TextView
+	               android:layout_width="wrap_content"
+	               android:layout_height="wrap_content"
+	               android:layout_marginLeft="8dp"
+	               android:layout_marginTop="4dp"
+	               android:text="Manage Videos"
+	               android:textColor="#fff"
+	               android:textSize="15sp" />
+				<TextView
+	               android:layout_width="wrap_content"
+	               android:layout_height="wrap_content"
+	               android:layout_marginLeft="8dp"
+	               android:layout_marginTop="21dp"
+	               android:text="Not enough free space on your device? Delete a video you don't want anymore and restore it at any time"
+	               android:textColor="#fff"
+	               android:textSize="10sp" />
+    		</RelativeLayout>   
+    	</LinearLayout>
+		
 		<TableLayout
 		    android:id="@+id/tbl_setting_tab1"
 		    android:layout_width="fill_parent"
@@ -250,137 +418,28 @@
                 </RelativeLayout>
             </TableRow>
         </TableLayout>
-			        
+        <ScrollView
+	        android:id="@+id/sv_setting"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_below="@+id/ll_setting_tab2"
+		    android:layout_alignLeft="@+id/iv_setting_bg"
+		    android:layout_alignRight="@+id/iv_setting_bg"
+		    android:layout_alignBottom="@+id/iv_setting_bg"
+		    android:paddingTop="20dp"
+		    android:paddingRight="20dp"
+		    android:paddingBottom="0dp"
+		    android:paddingLeft="20dp">
+            <LinearLayout
+			    android:id="@+id/tbl_setting_tab2"
+			    android:layout_width="fill_parent"
+			    android:layout_height="fill_parent"
+			    android:orientation="vertical">                
+	            				
+	        </LinearLayout>	
+	    </ScrollView>
+				        
     </RelativeLayout>
     
-    <RelativeLayout
-        android:id="@+id/rl_main"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@drawable/bg_1"
-         >
-	    
-	    <ImageView
-	        android:id="@+id/imageView2"
-	        android:layout_width="fill_parent"
-	        android:layout_height="2dp"
-	        android:layout_below="@+id/imageView1"
-	        android:background="@drawable/shart_line"
-	        android:src="@drawable/ic_launcher" />
-	
-	    <ImageView
-	        android:id="@+id/imageView1"
-	        android:layout_width="100dp"
-	        android:layout_height="84dp"
-	        android:layout_alignParentLeft="true"
-	        android:layout_alignParentTop="true"
-	        android:layout_marginLeft="15dp"
-	        android:layout_marginTop="8dp"
-	        android:src="@drawable/app_logo" />
-	
-	    <Button
-	        android:id="@+id/button1"
-	        android:layout_width="34dp"
-	        android:layout_height="34dp"
-	        android:layout_alignBottom="@+id/imageView1"
-	        android:layout_marginBottom="3dp"
-	        android:layout_marginLeft="20dp"
-	        android:layout_toRightOf="@+id/imageView1"
-	        android:background="@drawable/btn_totalsong" />
-	
-	    <Button
-	        android:id="@+id/button2"
-	        android:layout_width="120dp"
-	        android:layout_height="25dp"
-	        android:layout_alignBaseline="@+id/button1"
-	        android:layout_alignBottom="@+id/button1"
-	        android:layout_marginLeft="-10dp"
-	        android:layout_toRightOf="@+id/button1"
-	        android:background="@android:color/transparent"
-	        android:text="Toate cantecele"
-	        android:textColor="#fff"
-	        android:textSize="14sp" />
-	
-	    <Button
-	        android:id="@+id/Button01"
-	        android:layout_width="34dp"
-	        android:layout_height="34dp"
-	        android:layout_alignBottom="@+id/button2"
-	        android:layout_marginLeft="10dp"
-	        android:layout_toRightOf="@+id/button2"
-	        android:background="@drawable/btn_mysong" />
-	
-	    <Button
-	        android:id="@+id/Button02"
-	        android:layout_width="120dp"
-	        android:layout_height="25dp"
-	        android:layout_alignBaseline="@+id/Button01"
-	        android:layout_alignBottom="@+id/Button01"
-	        android:layout_marginLeft="-10dp"
-	        android:layout_toRightOf="@+id/Button01"
-	        android:background="@android:color/transparent"
-	        android:text="Cantecele mele"
-	        android:textColor="#fff"
-	        android:textSize="14sp" />
-	
-	    <Button
-	        android:id="@+id/Button03"
-	        android:layout_width="21dp"
-	        android:layout_height="21dp"
-	        android:layout_alignBaseline="@+id/Button01"
-	        android:layout_alignBottom="@+id/Button01"
-	        android:layout_alignParentRight="true"
-	        android:layout_marginRight="14dp"
-	        android:background="@drawable/btn_setting" />
-	
-	    <HorizontalScrollView
-	        android:id="@+id/horizontalScrollView1"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentBottom="true"
-	        android:layout_alignParentLeft="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_below="@+id/imageView2" >
-	
-	        <LinearLayout
-	            android:layout_width="match_parent"
-	            android:layout_height="match_parent"
-	            android:orientation="horizontal" >
-	        </LinearLayout>
-	    </HorizontalScrollView>
-
-	    <ImageView
-	        android:id="@+id/imageView3"
-	        android:layout_width="140dp"
-	        android:layout_height="25dp"
-	        android:layout_alignRight="@+id/Button03"
-	        android:layout_alignTop="@+id/imageView1"
-	        android:layout_marginTop="10dp"
-	        android:src="@drawable/search_bg" />
-
-	    <Button
-	        android:id="@+id/Button04"
-	        android:layout_width="18dp"
-	        android:layout_height="16dp"
-	        android:layout_alignTop="@+id/imageView3"
-	        android:layout_alignRight="@+id/imageView3"
-	        android:layout_marginTop="5dp"
-	        android:layout_marginRight="2dp"
-	        android:background="@drawable/search_cancel" />
-	    
-	    <EditText
-	        android:id="@+id/editText1"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_alignBottom="@+id/imageView3"
-	        android:layout_alignLeft="@+id/imageView3"
-	        android:layout_alignTop="@+id/imageView3"
-	        android:layout_toLeftOf="@+id/Button03"
-	        android:paddingLeft="7dp"
-	        android:background="@android:color/transparent"
-	        android:hint="Cauta meledie"
-	        android:textSize="12sp" />
-
-	</RelativeLayout>
-    
+</ViewFlipper>    
 </RelativeLayout>
