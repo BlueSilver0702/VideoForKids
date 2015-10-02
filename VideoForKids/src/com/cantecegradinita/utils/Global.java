@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.media.MediaPlayer;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 
@@ -21,6 +22,7 @@ public class Global {
 	public static String file_dir = extern_dir.toString() + "/" + app + "/";
 	public static String plist_path = file_dir + "list.plist";
 	private static Global sharedObj = null;
+	public static MediaPlayer music, effect;
 	
 	public static Global sharedInstance() {
 		if (sharedObj == null) sharedObj = new Global();

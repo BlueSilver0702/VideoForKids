@@ -16,7 +16,9 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -60,6 +62,13 @@ public class PlayerActivity extends Activity {
 	public VideoView mVideoView;
 	MediaController mediaController;
 	
+    boolean setting_bgmusic;
+    boolean setting_soundeffect;
+    boolean setting_subtitles;
+    boolean setting_searchfield;
+    boolean setting_shuffle;
+    boolean setting_autoplay;
+	
     @SuppressLint("NewApi") @SuppressWarnings("deprecation")
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +78,14 @@ public class PlayerActivity extends Activity {
         Bundle extraBundle;
 	    extraBundle=getIntent().getBundleExtra("databundle");
 	    String videoName = extraBundle.getString("video");
+	    
+	    SharedPreferences sharedPreferences = getSharedPreferences(Global.app,Context.MODE_PRIVATE);
+		setting_bgmusic = sharedPreferences.getBoolean("s_bgmusic", true);
+		setting_soundeffect = sharedPreferences.getBoolean("s_soundeffect", true);
+		setting_subtitles = sharedPreferences.getBoolean("s_subtitles", true);
+		setting_searchfield = sharedPreferences.getBoolean("s_searchfield", true);
+		setting_shuffle = sharedPreferences.getBoolean("s_shuffle", true);
+		setting_autoplay = sharedPreferences.getBoolean("s_autoplay", true);
 	    
 	    dbHelper = new DBHelperFraction(this);
         dbHelper.getWritableDatabase();
@@ -111,30 +128,37 @@ public class PlayerActivity extends Activity {
 				}
 				videoIndex ++;
 				if (videoIndex == videoList.size()) videoIndex = 0;
-				
-		        mVideoView.suspend();
-		        
-		        String videoStr = "";
-		        String videoName = "";
-		        if (is_order) {
-		        	videoStr = shuffleVideoList.get(videoIndex).video;
-		        	videoName = shuffleVideoList.get(videoIndex).name;
+		       
+		        if (setting_autoplay) {
+		        	mVideoView.suspend();
+			        String videoStr = "";
+			        String videoName = "";
+			        if (is_order) {
+			        	videoStr = shuffleVideoList.get(videoIndex).video;
+			        	videoName = shuffleVideoList.get(videoIndex).name;
+			        }
+			        else {
+			        	videoStr = videoList.get(videoIndex).video;
+			        	videoName = videoList.get(videoIndex).name;
+			        }
+			        File f = loadFile(videoStr);
+			        if (f== null){
+			        	err(videoName);
+			        	return;
+			        }
+			        
+					Uri video = Uri.fromFile(f);
+				    mVideoView.setVideoURI(video);
+				    mVideoView.start();
+				    btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
+				    if (setting_bgmusic) Global.music.pause();
+					is_play = true;
+		        } else {
+		        	is_play = false;
+		        	btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
+		        	mVideoView.seekTo(0);
+		        	if (setting_bgmusic) Global.music.start();
 		        }
-		        else {
-		        	videoStr = videoList.get(videoIndex).video;
-		        	videoName = videoList.get(videoIndex).name;
-		        }
-		        File f = loadFile(videoStr);
-		        if (f== null){
-		        	err(videoName);
-		        	return;
-		        }
-		        
-				Uri video = Uri.fromFile(f);
-			    mVideoView.setVideoURI(video);
-			    mVideoView.start();
-			    btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
-				is_play = false;
 			}
 		});
 	    mVideoView.setMediaController(null);
@@ -157,6 +181,8 @@ public class PlayerActivity extends Activity {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
+					if (setting_soundeffect) Global.effect.start();
+					if (setting_bgmusic) Global.music.pause();
 			        mVideoView.suspend();
 			        videoIndex = index;
 					
@@ -177,6 +203,7 @@ public class PlayerActivity extends Activity {
         btn_play_prev.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				videoIndex --;
 				if (videoIndex < 0) videoIndex = videoList.size()-1;
 				String videoStr = "";
@@ -197,6 +224,7 @@ public class PlayerActivity extends Activity {
 					mVideoView.suspend();
 				    mVideoView.setVideoURI(video);
 				    mVideoView.start();
+				    if (setting_bgmusic) Global.music.pause();
 		        }
 				
 			}
@@ -205,6 +233,7 @@ public class PlayerActivity extends Activity {
         btn_play_next.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				videoIndex ++;
 				if (videoIndex == videoList.size()) videoIndex = 0;
 		        mVideoView.suspend();
@@ -225,12 +254,14 @@ public class PlayerActivity extends Activity {
 				Uri video = Uri.fromFile(f);
 			    mVideoView.setVideoURI(video);
 			    mVideoView.start();
+			    if (setting_bgmusic) Global.music.pause();
 			}
 		});
         
         btn_play_back.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				finish();
 			}
 		});
@@ -239,6 +270,7 @@ public class PlayerActivity extends Activity {
         btn_play_repeat.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				if (is_repeat) {
 					btn_play_repeat.setBackgroundResource(R.drawable.btn_left_1);
 					is_repeat = false;
@@ -252,13 +284,24 @@ public class PlayerActivity extends Activity {
         btn_play_order.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				if (is_order) {
 					btn_play_order.setBackgroundResource(R.drawable.btn_left_2);
 					is_order = false;
+					setting_shuffle = false;
+					SharedPreferences sharedPreferences = getSharedPreferences(Global.app,Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sharedPreferences.edit();
+					editor.putBoolean("s_shuffle", false);	    
+				    editor.commit();
 				}
 				else {
 					btn_play_order.setBackgroundResource(R.drawable.btn_left_2_selected);
 					is_order = true;
+					setting_shuffle = true;
+					SharedPreferences sharedPreferences = getSharedPreferences(Global.app,Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sharedPreferences.edit();
+					editor.putBoolean("s_shuffle", true);	    
+				    editor.commit();
 				}
 			}
 		});
@@ -266,15 +309,18 @@ public class PlayerActivity extends Activity {
         btn_play_start.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				if (is_play) {
 					btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
 					is_play = false;
 					mVideoView.pause();
+					if (setting_bgmusic) Global.music.start();
 				}
 				else {
 					btn_play_start.setBackgroundResource(R.drawable.btn_play_bg);
 					is_play = true;
 					mVideoView.start();
+					if (setting_bgmusic) Global.music.pause();
 				}
 			}
 		});
@@ -315,6 +361,7 @@ public class PlayerActivity extends Activity {
 				sb_progress.setMax(mp.getDuration());
 				sb_progress.setProgress(0);
 				btn_play_start.setBackgroundResource(R.drawable.btn_play_bg);
+				if (setting_bgmusic) Global.music.pause();
 				is_play = true;
 			}
 	    	
@@ -339,6 +386,7 @@ public class PlayerActivity extends Activity {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
 				is_touched = false;
+				if (setting_soundeffect) Global.effect.start();
 			}
 		});
 	    

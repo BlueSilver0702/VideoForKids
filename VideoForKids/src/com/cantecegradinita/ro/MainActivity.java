@@ -24,11 +24,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +43,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -57,8 +61,9 @@ import com.cantecegradinita.utils.VideoDB;
 import com.kyleduo.switchbutton.SwitchButton;
 import com.tekle.oss.android.animation.AnimationFactory;
 import com.tekle.oss.android.animation.AnimationFactory.FlipDirection;
+import com.walnutlabs.android.ProgressHUD;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnCancelListener {
 
 	private DBHelperFraction dbHelper;
 	
@@ -72,7 +77,10 @@ public class MainActivity extends Activity {
     Button btn_setting, btn_setting_back, btn_setting_tab1, btn_setting_tab2, btn_setting_tab1_icon, btn_setting_tab2_icon;
     Button btn_main_total, btn_main_some, btn_main_total_icon, btn_main_some_icon, btn_search_cancel;
     EditText et_search;
+    ImageView iv_search;
     private SwitchButton sb_set1, sb_set2, sb_set3, sb_set4, sb_set5, sb_set6;
+    
+    ProgressHUD mProgressHUD;
     
     boolean is_download = false;
     boolean setting_bgmusic;
@@ -103,13 +111,25 @@ public class MainActivity extends Activity {
 		dbHelper = new DBHelperFraction(this);
         dbHelper.getWritableDatabase();
         
-        
+        Global.music = MediaPlayer.create(getApplicationContext(), R.raw.loop_background_music);
+        Global.effect = MediaPlayer.create(getApplicationContext(), R.raw.click_sound);
+        if (setting_bgmusic) Global.music.start();
+        Global.music.setOnCompletionListener(new OnCompletionListener() {
+			@Override
+			public void onCompletion(MediaPlayer mp) {
+				// TODO Auto-generated method stub
+				Global.music.reset();
+				Global.music.start();
+			}
+		});
         
         videoList = dbHelper.getAllVideos(false);
         
         setupUI();
         
 		if (!downloaded) {
+			mProgressHUD = ProgressHUD.show(MainActivity.this,"Loading ...", true,false,this);
+			
 			DownloadFileFromURL downloadHD = new DownloadFileFromURL();
 	        downloadHD.out_filename = Global.plist_path;
 	        downloadHD.execute(Global.file_url);
@@ -143,6 +163,8 @@ public class MainActivity extends Activity {
 					row.paid = false;
 				dbHelper.insertData(row);
 			}
+			
+			mProgressHUD.dismiss();
 		}
 		
 		for (int j=0; j<videoList.size(); j++) {
@@ -170,9 +192,9 @@ public class MainActivity extends Activity {
     	for (int j=0; j<Math.round(videoList.size()/2.0); j++) {
         	final LinearLayout tr=(LinearLayout)LayoutInflater.from(MainActivity.this).inflate(R.layout.cell_main, null);    
 			LinearLayout.LayoutParams layout_param= new LinearLayout.LayoutParams(
-					Global.convertDpToPixel(170, this),
+					Global.convertDpToPixel(180, this),
 					LinearLayout.LayoutParams.MATCH_PARENT);
-            layout_param.rightMargin = Global.convertDpToPixel(16, this);
+            layout_param.rightMargin = Global.convertDpToPixel(4, this);
             
             final VideoDB videoRow1 = videoList.get(j*2);
             RelativeLayout rl_bg1 = (RelativeLayout)tr.findViewById(R.id.rl_main_img1);
@@ -189,6 +211,7 @@ public class MainActivity extends Activity {
 					@Override
 					public void onClick(View v) {
 						// TODO Auto-generated method stub
+						if (setting_soundeffect) Global.effect.start();
 						Bundle extradataBundle=new Bundle();
 						extradataBundle.putString("video", videoRow1.name);
 						Bundle bundle=new Bundle();
@@ -208,6 +231,7 @@ public class MainActivity extends Activity {
             tempb1.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					if (setting_soundeffect) Global.effect.start();
 					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 					builder.setMessage("Are you sure to download this video?")
 				       .setTitle("Confirm");
@@ -252,6 +276,7 @@ public class MainActivity extends Activity {
 						@Override
 						public void onClick(View v) {
 							// TODO Auto-generated method stub
+							if (setting_soundeffect) Global.effect.start();
 							Bundle extradataBundle=new Bundle();
     						extradataBundle.putString("video", videoRow2.name);
     						Bundle bundle=new Bundle();
@@ -271,6 +296,7 @@ public class MainActivity extends Activity {
                 tempb2.setOnClickListener(new OnClickListener() {
     				@Override
     				public void onClick(View v) {
+    					if (setting_soundeffect) Global.effect.start();
     					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
     					builder.setMessage("Are you sure to download this video?")
     				       .setTitle("Confirm");
@@ -359,6 +385,11 @@ public class MainActivity extends Activity {
         btn_main_some_icon = (Button)findViewById(R.id.btn_main_some_icon);
         btn_search_cancel = (Button)findViewById(R.id.btn_search_cancel);
         et_search = (EditText)findViewById(R.id.et_search);
+        iv_search = (ImageView)findViewById(R.id.imageView3);
+        
+        if (!setting_searchfield) et_search.setVisibility(View.INVISIBLE);
+        if (!setting_searchfield) iv_search.setVisibility(View.INVISIBLE);
+        if (!setting_searchfield) btn_search_cancel.setVisibility(View.INVISIBLE);
         
         sb_set1 = (SwitchButton)findViewById(R.id.sb_md1);
         sb_set2 = (SwitchButton)findViewById(R.id.sb_md2);
@@ -377,61 +408,84 @@ public class MainActivity extends Activity {
         sb_set1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked)
+				if (setting_soundeffect) Global.effect.start();
+				if (isChecked) {
 					editor.putBoolean("s_bgmusic", true);
-				else
-					editor.putBoolean("s_bgmusic", false);	    
+					Global.music = MediaPlayer.create(getApplicationContext(), R.raw.loop_background_music);
+					Global.music.start();
+				} else {
+					editor.putBoolean("s_bgmusic", false);
+					Global.music.stop();
+				}
 			    editor.commit();
+			    setting_bgmusic = isChecked;
 			}	
 		});
         sb_set2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked)
+				if (isChecked) {
 					editor.putBoolean("s_soundeffect", true);
-				else
+					Global.effect.start();
+				} else
 					editor.putBoolean("s_soundeffect", false);	    
 			    editor.commit();
+			    setting_soundeffect = isChecked;
 			}	
 		});
         sb_set3.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (setting_soundeffect) Global.effect.start();
 				if (isChecked)
 					editor.putBoolean("s_subtitles", true);
 				else
 					editor.putBoolean("s_subtitles", false);	    
 			    editor.commit();
+			    setting_subtitles = isChecked;
 			}	
 		});
         sb_set4.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked)
+				if (setting_soundeffect) Global.effect.start();
+				if (isChecked) {
 					editor.putBoolean("s_searchfield", true);
-				else
-					editor.putBoolean("s_searchfield", false);	    
+					et_search.setVisibility(View.VISIBLE);
+					btn_search_cancel.setVisibility(View.VISIBLE);
+					iv_search.setVisibility(View.VISIBLE);
+				} else {
+					editor.putBoolean("s_searchfield", false);
+					et_search.setVisibility(View.INVISIBLE);
+					iv_search.setVisibility(View.INVISIBLE);
+					btn_search_cancel.setVisibility(View.INVISIBLE);
+				}
 			    editor.commit();
+			    setting_searchfield = isChecked;
 			}	
 		});
         sb_set5.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (setting_soundeffect) Global.effect.start();
 				if (isChecked)
 					editor.putBoolean("s_shuffle", true);
 				else
 					editor.putBoolean("s_shuffle", false);	    
 			    editor.commit();
+			    setting_shuffle = isChecked;
 			}	
 		});
         sb_set6.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (setting_soundeffect) Global.effect.start();
 				if (isChecked)
 					editor.putBoolean("s_autoplay", true);
 				else
 					editor.putBoolean("s_autoplay", false);	    
 			    editor.commit();
+			    setting_shuffle = isChecked;
 			}	
 		});
         
@@ -457,6 +511,7 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
+					if (setting_soundeffect) Global.effect.start();
 					if (row.download) {
 						dbHelper.updateData(row.name, row.paid, false, row.thumb, false);
 						updateVideo();
@@ -500,6 +555,7 @@ public class MainActivity extends Activity {
     	btn_setting.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (setting_soundeffect) Global.effect.start();
 				System.out.println(">>>>>>>>>>>>>>>>>> : ahahah");
 				AnimationFactory.flipTransition(viewAnimator, FlipDirection.RIGHT_LEFT);
 			}
@@ -508,6 +564,7 @@ public class MainActivity extends Activity {
         btn_setting_back.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				System.out.println(">>>>>>>>>>>>>>>>>> : ahahah");
 				AnimationFactory.flipTransition(viewAnimator, FlipDirection.RIGHT_LEFT);
 			}
@@ -516,6 +573,7 @@ public class MainActivity extends Activity {
         btn_setting_tab1.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				onChanged(true);
 			}
         });
@@ -523,6 +581,7 @@ public class MainActivity extends Activity {
         btn_setting_tab1_icon.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				onChanged(true);
 			}
         });
@@ -530,6 +589,7 @@ public class MainActivity extends Activity {
         btn_setting_tab2.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				onChanged(false);
 			}
         });
@@ -537,6 +597,7 @@ public class MainActivity extends Activity {
         btn_setting_tab2_icon.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				onChanged(false);
 			}
         });
@@ -544,6 +605,7 @@ public class MainActivity extends Activity {
         btn_main_total.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
 				btn_main_total_icon.setBackgroundResource(R.drawable.btn_totalsong_selected);
 				btn_main_some_icon.setBackgroundResource(R.drawable.btn_mysong);
 				videoList = dbHelper.getAllVideos(false);
@@ -554,6 +616,7 @@ public class MainActivity extends Activity {
         btn_main_total_icon.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
         		btn_main_total_icon.setBackgroundResource(R.drawable.btn_totalsong_selected);
 				btn_main_some_icon.setBackgroundResource(R.drawable.btn_mysong);
 				videoList = dbHelper.getAllVideos(false);
@@ -565,6 +628,7 @@ public class MainActivity extends Activity {
         btn_main_some.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
         		btn_main_total_icon.setBackgroundResource(R.drawable.btn_totalsong);
 				btn_main_some_icon.setBackgroundResource(R.drawable.btn_mysong_selected);
 				videoList = dbHelper.getAllVideos(true);
@@ -575,6 +639,7 @@ public class MainActivity extends Activity {
         btn_main_some_icon.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
         		btn_main_total_icon.setBackgroundResource(R.drawable.btn_totalsong);
 				btn_main_some_icon.setBackgroundResource(R.drawable.btn_mysong_selected);
 				videoList = dbHelper.getAllVideos(true);
@@ -585,6 +650,7 @@ public class MainActivity extends Activity {
         btn_search_cancel.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
+        		if (setting_soundeffect) Global.effect.start();
         		et_search.setText("");
         		videoList = dbHelper.getAllVideos(false);
         		refreshVideos();
@@ -596,8 +662,9 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				// TODO Auto-generated method stub
-				btn_search_cancel.setVisibility(View.VISIBLE);
+				if (et_search.getText().toString().length() > 0) btn_search_cancel.setVisibility(View.VISIBLE);
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
+					if (setting_soundeffect) Global.effect.start();
 					if (is_download)
 						videoList = dbHelper.searchData(et_search.getText().toString(), true);
 					else
@@ -805,6 +872,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
     	dbHelper.getWritableDatabase();
+		setting_shuffle = sharedPreferences.getBoolean("s_shuffle", true);
+        sb_set5.setChecked(setting_shuffle);
     	super.onResume();
     }
 
@@ -813,4 +882,10 @@ public class MainActivity extends Activity {
     	dbHelper.close();
     	super.onPause();
     }
+    
+    @Override
+	public void onCancel(DialogInterface dialog) {
+//		this.cancel(true);
+		mProgressHUD.dismiss();
+	}	
 }

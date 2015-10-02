@@ -10,11 +10,14 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="4dp"
         android:layout_weight="1"
-        android:background="@drawable/shadow"
+        android:background="@android:drawable/toast_frame"
         android:gravity="center"
-        android:padding="2dp" >
+        android:paddingBottom="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="0dp" >
 
         <RelativeLayout
             android:id="@+id/rl_main_img1"
@@ -58,11 +61,14 @@
         android:id="@+id/rl_main_second"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_weight="1"
-        android:background="@drawable/shadow"
+        android:background="@android:drawable/toast_frame"
         android:gravity="center"
-        android:padding="2dp" >
+        android:paddingBottom="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="0dp" >
 
         <RelativeLayout
             android:id="@+id/rl_main_img2"
@@ -70,8 +76,7 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/relativelayout_label1"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/video_thumnail_sample" >
+            android:layout_alignParentTop="true" >
 
             <Button
                 android:id="@+id/btn_main_cell_2"
