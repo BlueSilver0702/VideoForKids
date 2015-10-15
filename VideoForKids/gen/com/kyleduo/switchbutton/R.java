@@ -31,23 +31,23 @@ public final class R {
 		public static final int thumb_width = 0x7f010008;
 	}
 	public static final class drawable {
-		public static final int ic_launcher = 0x7f020085;
-		public static final int md_back_off = 0x7f02008b;
-		public static final int md_back_on = 0x7f02008c;
-		public static final int md_switch_thumb_disable = 0x7f02008d;
-		public static final int md_switch_thumb_off_normal = 0x7f02008e;
-		public static final int md_switch_thumb_off_pressed = 0x7f02008f;
-		public static final int md_switch_thumb_on_normal = 0x7f020090;
-		public static final int md_switch_thumb_on_pressed = 0x7f020091;
-		public static final int md_thumb = 0x7f020092;
+		public static final int ic_launcher = 0x7f020087;
+		public static final int md_back_off = 0x7f02008d;
+		public static final int md_back_on = 0x7f02008e;
+		public static final int md_switch_thumb_disable = 0x7f02008f;
+		public static final int md_switch_thumb_off_normal = 0x7f020090;
+		public static final int md_switch_thumb_off_pressed = 0x7f020091;
+		public static final int md_switch_thumb_on_normal = 0x7f020092;
+		public static final int md_switch_thumb_on_pressed = 0x7f020093;
+		public static final int md_thumb = 0x7f020094;
 	}
 	public static final class string {
-		public static final int app_name = 0x7f060000;
+		public static final int app_name = 0x7f070000;
 	}
 	public static final class style {
-		public static final int AppBaseTheme = 0x7f070001;
-		public static final int AppTheme = 0x7f070002;
-		public static final int MD = 0x7f070003;
+		public static final int AppBaseTheme = 0x7f080001;
+		public static final int AppTheme = 0x7f080002;
+		public static final int MD = 0x7f080003;
 	}
 	public static final class styleable {
 		public static final int[] SwitchButton = { 0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003, 0x7f010004, 0x7f010005, 0x7f010006, 0x7f010007, 0x7f010008, 0x7f010009, 0x7f01000a, 0x7f01000b, 0x7f01000c, 0x7f01000d, 0x7f01000e, 0x7f01000f, 0x7f010010, 0x7f010011, 0x7f010012, 0x7f010013, 0x7f010014 };

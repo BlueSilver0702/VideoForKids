@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_bk"
+    android:paddingBottom="15dp"
+    android:paddingTop="7dp" >
+
+    <TextView
+        android:id="@+id/tv_pay_some"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/item_red_bg"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="Unlock &apos;Song Name&apos; - $0.99"
+        android:textColor="#ffffff"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tv_pay_all"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/tv_pay_some"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/item_green_bg"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="Unlock All Songs - $4.99"
+        android:textColor="#ffffff"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@+id/iv_cancel"
+        android:layout_width="120dp"
+        android:layout_height="25dp"
+        android:layout_below="@+id/tv_pay_all"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/btn_cancel" />
+
+</RelativeLayout>

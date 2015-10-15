@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.media.MediaPlayer;
 import android.os.Environment;
@@ -23,9 +25,16 @@ public class Global {
 	public static String plist_path = file_dir + "list.plist";
 	private static Global sharedObj = null;
 	public static MediaPlayer music, effect;
+	public static boolean isPlayPage = false;
+	public static boolean isSettingPage = false;
+	public static ArrayList<VideoDB> downloadList;
+	public static boolean pausePlaying = false;
+	public static String pauseVideo = "";
+	public static int pauseTime = 0; 
 	
 	public static Global sharedInstance() {
 		if (sharedObj == null) sharedObj = new Global();
+		
 		return sharedObj;
 	}
 	
@@ -54,5 +63,11 @@ public class Global {
         DisplayMetrics metrics = resources.getDisplayMetrics();
         float px = dp * (metrics.densityDpi / 160f);
         return (int)px;
+    }
+    
+    public static boolean isTablet(Context context) {
+        return (context.getResources().getConfiguration().screenLayout
+                & Configuration.SCREENLAYOUT_SIZE_MASK)
+                >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 }

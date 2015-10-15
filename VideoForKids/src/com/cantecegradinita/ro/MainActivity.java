@@ -20,6 +20,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,29 +29,27 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.ViewAnimator;
 
@@ -58,9 +57,7 @@ import com.cantecegradinita.utils.DBHelperFraction;
 import com.cantecegradinita.utils.Global;
 import com.cantecegradinita.utils.Video;
 import com.cantecegradinita.utils.VideoDB;
-import com.kyleduo.switchbutton.SwitchButton;
-import com.tekle.oss.android.animation.AnimationFactory;
-import com.tekle.oss.android.animation.AnimationFactory.FlipDirection;
+import com.example.android.trivialdrivesample.util.IabHelper;
 import com.walnutlabs.android.ProgressHUD;
 
 public class MainActivity extends Activity implements OnCancelListener {
@@ -68,18 +65,15 @@ public class MainActivity extends Activity implements OnCancelListener {
 	private DBHelperFraction dbHelper;
 	
 	ArrayList<VideoDB> videoList;
+//	ArrayList<VideoDB> showedList;
 	ViewAnimator viewAnimator;
     
-	LinearLayout ll_tab1, ll_tab2, tbl_tab2, ll_main_tb;
-    TableLayout tbl_tab1;
-    ScrollView sv_tab2;
+	LinearLayout ll_main_tb;
     
-    Button btn_setting, btn_setting_back, btn_setting_tab1, btn_setting_tab2, btn_setting_tab1_icon, btn_setting_tab2_icon;
+    Button btn_setting;
     Button btn_main_total, btn_main_some, btn_main_total_icon, btn_main_some_icon, btn_search_cancel;
     EditText et_search;
-    ImageView iv_search;
-    private SwitchButton sb_set1, sb_set2, sb_set3, sb_set4, sb_set5, sb_set6;
-    
+    ImageView iv_search;    
     ProgressHUD mProgressHUD;
     
     boolean is_download = false;
@@ -89,18 +83,39 @@ public class MainActivity extends Activity implements OnCancelListener {
     boolean setting_searchfield;
     boolean setting_shuffle;
     boolean setting_autoplay;
+
+    boolean flag_downloadHistory;
+    boolean flag_init_downloaded;
     
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
-//    boolean isTab1;
-    @Override
+    boolean isTablet = false;
+
+	// In-app billing constants
+	final String IAB_MONTH = "monthly";
+	final String IAB_YEAR = "yearly";
+	boolean mSubscribedToInfiniteGas = false;    
+    // (arbitrary) request code for the purchase flow
+    final int RC_REQUEST = 10001;
+    final String TAG = "TrivialDrive";
+    
+    IabHelper mHelper;
+	
+    @SuppressLint("NewApi") @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        
+        isTablet = Global.isTablet(this);
+        
+        if (isTablet) {
+        	setContentView(R.layout.activity_main_tablet);
+        } else {
+        	setContentView(R.layout.activity_main);
+        }
         
         sharedPreferences = getSharedPreferences(Global.app,Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
-		boolean downloaded = sharedPreferences.getBoolean("downloaded", false);
+		flag_downloadHistory = sharedPreferences.getBoolean("downloaded", false);
 		setting_bgmusic = sharedPreferences.getBoolean("s_bgmusic", true);
 		setting_soundeffect = sharedPreferences.getBoolean("s_soundeffect", true);
 		setting_subtitles = sharedPreferences.getBoolean("s_subtitles", true);
@@ -110,6 +125,9 @@ public class MainActivity extends Activity implements OnCancelListener {
 		
 		dbHelper = new DBHelperFraction(this);
         dbHelper.getWritableDatabase();
+        
+        Global.isPlayPage = false;
+        Global.downloadList = new ArrayList<VideoDB>();
         
         Global.music = MediaPlayer.create(getApplicationContext(), R.raw.loop_background_music);
         Global.effect = MediaPlayer.create(getApplicationContext(), R.raw.click_sound);
@@ -123,80 +141,77 @@ public class MainActivity extends Activity implements OnCancelListener {
 			}
 		});
         
-        videoList = dbHelper.getAllVideos(false);
-        
         setupUI();
+			
+		mProgressHUD = ProgressHUD.show(MainActivity.this,"Loading ...", true,false,this);
+		
+		DownloadFileFromURL downloadHD = new DownloadFileFromURL();
+        downloadHD.out_filename = Global.plist_path;
+        downloadHD.execute(Global.file_url);
         
-		if (!downloaded) {
-			mProgressHUD = ProgressHUD.show(MainActivity.this,"Loading ...", true,false,this);
-			
-			DownloadFileFromURL downloadHD = new DownloadFileFromURL();
-	        downloadHD.out_filename = Global.plist_path;
-	        downloadHD.execute(Global.file_url);
-	        while(downloadHD.isSuccess);
-		    editor.putBoolean("downloaded", true);	    
-		    editor.commit();
-			
-			List<Video> listArr = null;
-			ProductsPlistParsing parseHandler = new ProductsPlistParsing(this);
-			try {
-				listArr = parseHandler.getProductsPlistValues(Global.plist_path);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			dbHelper.emptyTable();
-			for (int i=0; i<listArr.size(); i++) {
-				VideoDB row = new VideoDB();
-				Video videoRow = listArr.get(i);
-				row.caption = videoRow.caption;
-				row.image = videoRow.image;
-				row.name = videoRow.name;
-				row.video = videoRow.video;
-				if (videoRow.paid.endsWith("1")) 
-					row.paid = true;
-				else 
-					row.paid = false;
-				dbHelper.insertData(row);
-			}
-			
-			mProgressHUD.dismiss();
-		}
-		
-		for (int j=0; j<videoList.size(); j++) {
-			VideoDB row = videoList.get(j);
-			if (!row.thumb) {
-				DownloadFileFromURL thumbHD = new DownloadFileFromURL();
-				thumbHD.out_filename = Global.file_dir + row.image;
-//				thumbHD.out_filename.replace("-", "_");
-		        thumbHD.execute(Global.server_path+row.image);
-		        while(thumbHD.isSuccess);
-		        dbHelper.updateData(row.name, row.paid, row.download, true, row.fail);
-			}
-		}
-		
-		videoList = dbHelper.getAllVideos(false);
-        refreshVideos();
+//        refreshVideos();
+        
+        String base64EncodedPublicKey = "CONSTRUCT_YOUR_KEY_AND_PLACE_IT_HERE";
+        
+        // Create the helper, passing it our context and the public key to verify signatures with
+        Log.d(TAG, "Creating IAB helper.");
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
+        
+        // enable debug logging (for a production application, you should set this to false).
+        mHelper.enableDebugLogging(true);
+
+        // Start setup. This is asynchronous and the specified listener
+        // will be called once setup completes.
+        Log.d(TAG, "Starting setup.");
+        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                Log.d(TAG, "Setup finished.");
+
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    complain("Problem setting up in-app billing: " + result);
+                    return;
+                }
+
+                // Hooray, IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d(TAG, "Setup successful. Querying inventory.");
+                mHelper.queryInventoryAsync(mGotInventoryListener);
+            }
+        });
     }
+
     
     @SuppressWarnings("deprecation")
 	@SuppressLint({ "InflateParams", "NewApi" }) public void refreshVideos() {
     	
     	updateVideo();
     	ll_main_tb.removeAllViews();
+    	ArrayList<VideoDB> thumbList = new ArrayList<VideoDB>();
+    	for (int k=0; k<videoList.size(); k++) {
+    		if (videoList.get(k).thumb) thumbList.add(videoList.get(k));
+    	}
     	
-    	for (int j=0; j<Math.round(videoList.size()/2.0); j++) {
-        	final LinearLayout tr=(LinearLayout)LayoutInflater.from(MainActivity.this).inflate(R.layout.cell_main, null);    
-			LinearLayout.LayoutParams layout_param= new LinearLayout.LayoutParams(
-					Global.convertDpToPixel(180, this),
-					LinearLayout.LayoutParams.MATCH_PARENT);
-            layout_param.rightMargin = Global.convertDpToPixel(4, this);
-            
-            final VideoDB videoRow1 = videoList.get(j*2);
+    	for (int j=0; j<Math.round(thumbList.size()/2.0); j++) {
+        	LinearLayout tr_temp = null;
+        	if (isTablet)
+        		tr_temp =(LinearLayout)LayoutInflater.from(MainActivity.this).inflate(R.layout.cell_main_tablet, null);
+        	else 
+        		tr_temp =(LinearLayout)LayoutInflater.from(MainActivity.this).inflate(R.layout.cell_main, null);
+        	final LinearLayout tr = tr_temp;
+			LinearLayout.LayoutParams layout_param = null;
+			if (isTablet) {
+				layout_param = new LinearLayout.LayoutParams(
+						Global.convertDpToPixel(350, this),
+						LinearLayout.LayoutParams.MATCH_PARENT);
+				layout_param.rightMargin = Global.convertDpToPixel(7, this);
+			} else {
+				layout_param = new LinearLayout.LayoutParams(
+						Global.convertDpToPixel(180, this),
+						LinearLayout.LayoutParams.MATCH_PARENT);
+				layout_param.rightMargin = Global.convertDpToPixel(0, this);
+			}
+			
+            final VideoDB videoRow1 = thumbList.get(j*2);
             RelativeLayout rl_bg1 = (RelativeLayout)tr.findViewById(R.id.rl_main_img1);
             Resources res1 = getResources();
             Bitmap bitmap1 = BitmapFactory.decodeFile(Global.file_dir+videoRow1.image);
@@ -204,7 +219,7 @@ public class MainActivity extends Activity implements OnCancelListener {
 //            bitmap1.recycle();
 
             rl_bg1.setBackgroundDrawable(bd1);
-            Button tempb1 = (Button)tr.findViewById(R.id.btn_main_cell_1);
+            final Button tempb1 = (Button)tr.findViewById(R.id.btn_main_cell_1);
             if (videoRow1.download) {
             	tempb1.setVisibility(View.INVISIBLE);
             	rl_bg1.setOnClickListener(new OnClickListener() {
@@ -224,6 +239,21 @@ public class MainActivity extends Activity implements OnCancelListener {
             } else if (videoRow1.paid) {
             	tempb1.setVisibility(View.VISIBLE);
             	tempb1.setBackgroundResource(R.drawable.lock);
+            	rl_bg1.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						// TODO Auto-generated method stub
+						tempb1.performClick();
+					}
+				});
+            } else {
+            	rl_bg1.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						// TODO Auto-generated method stub
+						tempb1.performClick();
+					}
+				});
             }
             TextView tv_main1 = (TextView)tr.findViewById(R.id.tv_main_text1);
             tv_main1.setText(videoRow1.name);
@@ -232,35 +262,48 @@ public class MainActivity extends Activity implements OnCancelListener {
 				@Override
 				public void onClick(View v) {
 					if (setting_soundeffect) Global.effect.start();
-					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-					builder.setMessage("Are you sure to download this video?")
-				       .setTitle("Confirm");
-					// Add the buttons
-					builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					           public void onClick(DialogInterface dialog, int id) {
-					               // User clicked OK button
-					        	   DownloadFileFromURL downloadHD = new DownloadFileFromURL();
-						   	       downloadHD.out_filename = Global.file_dir+videoRow1.video;
-						   	       downloadHD.videoInfo = videoRow1;
-						   	       downloadHD.execute(Global.server_path+videoRow1.video);
-						   	       Toast.makeText(MainActivity.this, "Downloading "+videoRow1.name,Toast.LENGTH_LONG).show();
-					           }
-					       });
-					builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-					           public void onClick(DialogInterface dialog, int id) {
-					               // User cancelled the dialog
-					           }
-					       });
+					if (!videoRow1.paid) {
+						for (int jj=0; jj<Global.downloadList.size(); jj++) {
+		        		   if (Global.downloadList.get(jj).name.equals(videoRow1.name)) return;
+		        	    }
+		        	   
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+						builder.setMessage("Are you sure to download this video?")
+					       .setTitle("Confirm");
+						// Add the buttons
+						builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						           public void onClick(DialogInterface dialog, int id) {
+						               // User clicked OK button
+						        	   Global.downloadList.add(videoRow1);
+						        	   Toast.makeText(MainActivity.this, "Downloading "+videoRow1.name,Toast.LENGTH_LONG).show();
+						        	   
+						        	   DownloadSRTFromURL downloadSRT = new DownloadSRTFromURL();
+							   	       downloadSRT.out_filename = Global.file_dir+videoRow1.caption;
+							   	       downloadSRT.execute(Global.server_path+videoRow1.caption);
+							   	       
+						        	   DownloadVideoFromURL downloadHD = new DownloadVideoFromURL();
+							   	       downloadHD.out_filename = Global.file_dir+videoRow1.video;
+							   	       downloadHD.videoInfo = videoRow1;
+							   	       downloadHD.execute(Global.server_path+videoRow1.video);
+						           }
+						       });
+						builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+						           public void onClick(DialogInterface dialog, int id) {
+						               // User cancelled the dialog
+						           }
+						       });
 
-					// Create the AlertDialog
-					AlertDialog dialog = builder.create();
-					dialog.show();
-
+						// Create the AlertDialog
+						AlertDialog dialog = builder.create();
+						dialog.show();
+					} else {
+						showCalcDailogBox(videoRow1);
+					}
 				}
 			});
             
-            if (j*2+1 < videoList.size()) {
-            	final VideoDB videoRow2 = videoList.get(j*2+1);
+            if (j*2+1 < thumbList.size()) {
+            	final VideoDB videoRow2 = thumbList.get(j*2+1);
                 RelativeLayout rl_bg2 = (RelativeLayout)tr.findViewById(R.id.rl_main_img2);
                 Resources res2 = getResources();
                 Bitmap bitmap2 = BitmapFactory.decodeFile(Global.file_dir+videoRow2.image);
@@ -269,7 +312,7 @@ public class MainActivity extends Activity implements OnCancelListener {
 
                 rl_bg2.setBackgroundDrawable(bd2);
 
-                Button tempb2 = (Button)tr.findViewById(R.id.btn_main_cell_2);
+                final Button tempb2 = (Button)tr.findViewById(R.id.btn_main_cell_2);
                 if (videoRow2.download) {
                 	tempb2.setVisibility(View.INVISIBLE);
                 	rl_bg2.setOnClickListener(new OnClickListener() {
@@ -289,6 +332,21 @@ public class MainActivity extends Activity implements OnCancelListener {
                 } else if (videoRow2.paid) {
                 	tempb2.setVisibility(View.VISIBLE);
                 	tempb2.setBackgroundResource(R.drawable.lock);
+                	rl_bg2.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							// TODO Auto-generated method stub
+							tempb2.performClick();
+						}
+					});
+                } else {
+                	rl_bg2.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							// TODO Auto-generated method stub
+							tempb2.performClick();
+						}
+					});
                 }
                 TextView tv_main2 = (TextView)tr.findViewById(R.id.tv_main_text2);
                 tv_main2.setText(videoRow2.name);
@@ -297,32 +355,46 @@ public class MainActivity extends Activity implements OnCancelListener {
     				@Override
     				public void onClick(View v) {
     					if (setting_soundeffect) Global.effect.start();
-    					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-    					builder.setMessage("Are you sure to download this video?")
-    				       .setTitle("Confirm");
-    					// Add the buttons
-    					builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-    					           public void onClick(DialogInterface dialog, int id) {
-    					               // User clicked OK button
-    					        	   DownloadFileFromURL downloadHD = new DownloadFileFromURL();
-    						   	       downloadHD.out_filename = Global.file_dir+videoRow2.video;
-    						   	       downloadHD.videoInfo = videoRow2;
-    						   	       downloadHD.execute(Global.server_path+videoRow2.video);
-    						   	       Toast.makeText(MainActivity.this, "Downloading "+videoRow2.name,Toast.LENGTH_LONG).show();
-    					           }
-    					       });
-    					builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-    					           public void onClick(DialogInterface dialog, int id) {
-    					               // User cancelled the dialog
-    					           }
-    					       });
+    					if (!videoRow2.paid) {
+    						
+    						for (int jj=0; jj<Global.downloadList.size(); jj++) {
+			        		   if (Global.downloadList.get(jj).name.equals(videoRow2.name)) return;
+			        	    }
+						
+    						AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        					builder.setMessage("Are you sure to download this video?")
+        				       .setTitle("Confirm");
+        					// Add the buttons
+        					builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        					           public void onClick(DialogInterface dialog, int id) {
+        					               // User clicked OK button
+        					        	   
+        					        	   Global.downloadList.add(videoRow2);
+        					        	   
+        					        	   Toast.makeText(MainActivity.this, "Downloading "+videoRow2.name,Toast.LENGTH_LONG).show();
+        					        	   
+        					        	   DownloadSRTFromURL downloadSRT = new DownloadSRTFromURL();
+        						   	       downloadSRT.out_filename = Global.file_dir+videoRow2.caption;
+        						   	       downloadSRT.execute(Global.server_path+videoRow2.caption);
+        						   	       
+        					        	   DownloadVideoFromURL downloadHD = new DownloadVideoFromURL();
+        						   	       downloadHD.out_filename = Global.file_dir+videoRow2.video;
+        						   	       downloadHD.videoInfo = videoRow2;
+        						   	       downloadHD.execute(Global.server_path+videoRow2.video);
+        					           }
+        					       });
+        					builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        					           public void onClick(DialogInterface dialog, int id) {
+        					               // User cancelled the dialog
+        					           }
+        					       });
 
-    					// Create the AlertDialog
-    					AlertDialog dialog = builder.create();
-    					dialog.show();
-
-//    					Intent sd=new Intent(MainActivity.this,PlayerActivity.class);
-//    			        startActivity(sd);
+        					// Create the AlertDialog
+        					AlertDialog dialog = builder.create();
+        					dialog.show();
+    					} else {
+    						showCalcDailogBox(videoRow2);
+    					}
     				}
     			});
             } else {
@@ -330,6 +402,7 @@ public class MainActivity extends Activity implements OnCancelListener {
             	rl_second.setVisibility(View.INVISIBLE);
             }
             
+            layout_param.width = (int)(ll_main_tb.getMeasuredHeight() * 1.7734375 / 2.3);
         	ll_main_tb.addView(tr, layout_param);
 
         }
@@ -341,42 +414,11 @@ public class MainActivity extends Activity implements OnCancelListener {
     	else 
     		videoList = dbHelper.searchData(et_search.getText().toString(), false);
     }
-    
-    @SuppressWarnings("static-access")
-	public void onChanged(boolean isTab1) {
-    	if (isTab1) {
-    		ll_tab1.setVisibility(View.VISIBLE);
-    		ll_tab2.setVisibility(View.INVISIBLE);
-    		tbl_tab1.setVisibility(View.VISIBLE);
-    		sv_tab2.setVisibility(View.INVISIBLE);
-    		btn_setting_tab1.setBackgroundResource(R.drawable.bg);
-    		btn_setting_tab2.setBackgroundColor(new Color().TRANSPARENT);
-    	} else {
-    		ll_tab2.setVisibility(View.VISIBLE);
-    		ll_tab1.setVisibility(View.INVISIBLE);
-    		tbl_tab1.setVisibility(View.INVISIBLE);
-    		sv_tab2.setVisibility(View.VISIBLE);
-    		btn_setting_tab2.setBackgroundResource(R.drawable.bg);
-    		btn_setting_tab1.setBackgroundColor(new Color().TRANSPARENT);
-    	}
-    }
-    
-    @SuppressLint("InflateParams") public void setupUI() {
-        viewAnimator = (ViewAnimator)this.findViewById(R.id.viewFlipper);
         
+    @SuppressLint("InflateParams") public void setupUI() {        
         //  Setting Page
-        ll_tab1 = (LinearLayout)findViewById(R.id.ll_setting_tab1);
-        ll_tab2 = (LinearLayout)findViewById(R.id.ll_setting_tab2);
-        tbl_tab2 = (LinearLayout)findViewById(R.id.tbl_setting_tab2);
-        ll_main_tb = (LinearLayout)findViewById(R.id.ll_main_tb);
-        tbl_tab1 = (TableLayout)findViewById(R.id.tbl_setting_tab1);
-        sv_tab2 = (ScrollView)findViewById(R.id.sv_setting);
         btn_setting = (Button)findViewById(R.id.btn_main_setting);
-        btn_setting_back = (Button)findViewById(R.id.btn_setting_back);
-        btn_setting_tab1 = (Button)findViewById(R.id.btn_setting_tab1);
-        btn_setting_tab2 = (Button)findViewById(R.id.btn_setting_tab2);
-        btn_setting_tab1_icon = (Button)findViewById(R.id.btn_setting_tab1_icon);
-        btn_setting_tab2_icon = (Button)findViewById(R.id.btn_setting_tab2_icon);
+        ll_main_tb = (LinearLayout)findViewById(R.id.ll_main_tb);
         
         //	Main Page
         btn_main_total = (Button)findViewById(R.id.btn_main_total);
@@ -385,222 +427,49 @@ public class MainActivity extends Activity implements OnCancelListener {
         btn_main_some_icon = (Button)findViewById(R.id.btn_main_some_icon);
         btn_search_cancel = (Button)findViewById(R.id.btn_search_cancel);
         et_search = (EditText)findViewById(R.id.et_search);
-        iv_search = (ImageView)findViewById(R.id.imageView3);
+        iv_search = (ImageView)findViewById(R.id.iv_search_back);
         
         if (!setting_searchfield) et_search.setVisibility(View.INVISIBLE);
         if (!setting_searchfield) iv_search.setVisibility(View.INVISIBLE);
         if (!setting_searchfield) btn_search_cancel.setVisibility(View.INVISIBLE);
         
-        sb_set1 = (SwitchButton)findViewById(R.id.sb_md1);
-        sb_set2 = (SwitchButton)findViewById(R.id.sb_md2);
-        sb_set3 = (SwitchButton)findViewById(R.id.sb_md3);
-        sb_set4 = (SwitchButton)findViewById(R.id.sb_md4);
-        sb_set5 = (SwitchButton)findViewById(R.id.sb_md5);
-        sb_set6 = (SwitchButton)findViewById(R.id.sb_md6);
-        
-        sb_set1.setChecked(setting_bgmusic);
-        sb_set2.setChecked(setting_soundeffect);
-        sb_set3.setChecked(setting_subtitles);
-        sb_set4.setChecked(setting_searchfield);
-        sb_set5.setChecked(setting_shuffle);
-        sb_set6.setChecked(setting_autoplay);
-
-        sb_set1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (setting_soundeffect) Global.effect.start();
-				if (isChecked) {
-					editor.putBoolean("s_bgmusic", true);
-					Global.music = MediaPlayer.create(getApplicationContext(), R.raw.loop_background_music);
-					Global.music.start();
-				} else {
-					editor.putBoolean("s_bgmusic", false);
-					Global.music.stop();
-				}
-			    editor.commit();
-			    setting_bgmusic = isChecked;
-			}	
-		});
-        sb_set2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked) {
-					editor.putBoolean("s_soundeffect", true);
-					Global.effect.start();
-				} else
-					editor.putBoolean("s_soundeffect", false);	    
-			    editor.commit();
-			    setting_soundeffect = isChecked;
-			}	
-		});
-        sb_set3.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (setting_soundeffect) Global.effect.start();
-				if (isChecked)
-					editor.putBoolean("s_subtitles", true);
-				else
-					editor.putBoolean("s_subtitles", false);	    
-			    editor.commit();
-			    setting_subtitles = isChecked;
-			}	
-		});
-        sb_set4.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (setting_soundeffect) Global.effect.start();
-				if (isChecked) {
-					editor.putBoolean("s_searchfield", true);
-					et_search.setVisibility(View.VISIBLE);
-					btn_search_cancel.setVisibility(View.VISIBLE);
-					iv_search.setVisibility(View.VISIBLE);
-				} else {
-					editor.putBoolean("s_searchfield", false);
-					et_search.setVisibility(View.INVISIBLE);
-					iv_search.setVisibility(View.INVISIBLE);
-					btn_search_cancel.setVisibility(View.INVISIBLE);
-				}
-			    editor.commit();
-			    setting_searchfield = isChecked;
-			}	
-		});
-        sb_set5.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (setting_soundeffect) Global.effect.start();
-				if (isChecked)
-					editor.putBoolean("s_shuffle", true);
-				else
-					editor.putBoolean("s_shuffle", false);	    
-			    editor.commit();
-			    setting_shuffle = isChecked;
-			}	
-		});
-        sb_set6.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (setting_soundeffect) Global.effect.start();
-				if (isChecked)
-					editor.putBoolean("s_autoplay", true);
-				else
-					editor.putBoolean("s_autoplay", false);	    
-			    editor.commit();
-			    setting_shuffle = isChecked;
-			}	
-		});
-        
-        for (int i=0; i<videoList.size(); i++) {
-        	final RelativeLayout tr=(RelativeLayout)LayoutInflater.from(MainActivity.this).inflate(R.layout.cell_setting, null);    
-
-            @SuppressWarnings("deprecation")
-			LinearLayout.LayoutParams layout_param= new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.FILL_PARENT,
-                    Global.convertDpToPixel(36, this));
-            layout_param.bottomMargin = Global.convertDpToPixel(12, this);
-            tr.setBackgroundResource(R.drawable.setting_item_bg);
-            final VideoDB row = videoList.get(i);
-            TextView tv_setting_download_title = (TextView)tr.findViewById(R.id.tv_setting_row);
-            final TextView tv_setting_download_corrupted = (TextView)tr.findViewById(R.id.tv_setting_corrupted);
-            final Button bt_setting_download = (Button)tr.findViewById(R.id.btn_setting_row);
-            tv_setting_download_title.setText(row.name);
-            if (row.fail) tv_setting_download_corrupted.setVisibility(View.VISIBLE);
-            else tv_setting_download_corrupted.setVisibility(View.INVISIBLE);
-            if (row.download) bt_setting_download.setBackgroundResource(R.drawable.btn_delete);
-            else bt_setting_download.setBackgroundResource(R.drawable.btn_download);
-            bt_setting_download.setOnClickListener(new OnClickListener() {
+        if (!isTablet) {
+	        Button bt_cover_total = (Button)findViewById(R.id.bt_cover_total);
+	        Button bt_cover_some = (Button)findViewById(R.id.bt_cover_some);
+	        Button bt_cover_setting = (Button)findViewById(R.id.bt_cover_setting);
+	        
+	        bt_cover_total.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-					if (setting_soundeffect) Global.effect.start();
-					if (row.download) {
-						dbHelper.updateData(row.name, row.paid, false, row.thumb, false);
-						updateVideo();
-						refreshVideos();
-						bt_setting_download.setBackgroundResource(R.drawable.btn_download);
-						tv_setting_download_corrupted.setVisibility(View.INVISIBLE);
-					} else {
-						AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-						builder.setMessage("Are you sure to download this video?")
-					       .setTitle("Confirm");
-						// Add the buttons
-						builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-						           public void onClick(DialogInterface dialog, int id) {
-						               // User clicked OK button
-						        	   DownloadFileFromURL downloadHD = new DownloadFileFromURL();
-							   	       downloadHD.out_filename = Global.file_dir+row.video;
-							   	       downloadHD.videoInfo = row;
-							   	       downloadHD.execute(Global.server_path+row.video);
-							   	       Toast.makeText(MainActivity.this, "Downloading "+row.name,Toast.LENGTH_LONG).show();
-						           }
-						       });
-						builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-						           public void onClick(DialogInterface dialog, int id) {
-						               // User cancelled the dialog
-						           }
-						       });
-
-						// Create the AlertDialog
-						AlertDialog dialog = builder.create();
-						dialog.show();
-
-					}
+					btn_main_total.performClick();
 				}
 			});
-        	tbl_tab2.addView(tr, layout_param);
+	        bt_cover_some.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub
+					btn_main_some.performClick();
+				}
+			});
+	        bt_cover_setting.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub
+					btn_setting.performClick();
+				}
+			});
         }
-        
-                
-        onChanged(true);
-        
+	                
     	btn_setting.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (setting_soundeffect) Global.effect.start();
 				System.out.println(">>>>>>>>>>>>>>>>>> : ahahah");
-				AnimationFactory.flipTransition(viewAnimator, FlipDirection.RIGHT_LEFT);
+				Intent sd=new Intent(MainActivity.this,SettingActivity.class);
+		        startActivity(sd);
 			}
 		});
-        
-        btn_setting_back.setOnClickListener(new OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-        		if (setting_soundeffect) Global.effect.start();
-				System.out.println(">>>>>>>>>>>>>>>>>> : ahahah");
-				AnimationFactory.flipTransition(viewAnimator, FlipDirection.RIGHT_LEFT);
-			}
-        });
-        
-        btn_setting_tab1.setOnClickListener(new OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-        		if (setting_soundeffect) Global.effect.start();
-				onChanged(true);
-			}
-        });
-        
-        btn_setting_tab1_icon.setOnClickListener(new OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-        		if (setting_soundeffect) Global.effect.start();
-				onChanged(true);
-			}
-        });
-        
-        btn_setting_tab2.setOnClickListener(new OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-        		if (setting_soundeffect) Global.effect.start();
-				onChanged(false);
-			}
-        });
-        
-        btn_setting_tab2_icon.setOnClickListener(new OnClickListener() {
-        	@Override
-			public void onClick(View v) {
-        		if (setting_soundeffect) Global.effect.start();
-				onChanged(false);
-			}
-        });
         
         btn_main_total.setOnClickListener(new OnClickListener() {
         	@Override
@@ -675,7 +544,36 @@ public class MainActivity extends Activity implements OnCancelListener {
 				return false;
 			}
 		});
+        
+		et_search.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {
+				// TODO Auto-generated method stub
+				if (et_search.getText().toString().length() > 0) btn_search_cancel.setVisibility(View.VISIBLE);
+				if (setting_soundeffect) Global.effect.start();
+				if (is_download)
+					videoList = dbHelper.searchData(et_search.getText().toString(), true);
+				else
+					videoList = dbHelper.searchData(et_search.getText().toString(), false);
+				refreshVideos();
+			}
+		});
     }
+    
     /**
      * Background Async Task to download file
      * */
@@ -683,16 +581,7 @@ public class MainActivity extends Activity implements OnCancelListener {
 
     	public boolean isSuccess = true;
     	public String out_filename;
-    	public VideoDB videoInfo = null;
     	public int percentage = 0;
-        /**
-         * Before starting background thread Show Progress Bar Dialog
-         * */
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-//            showDialog(progress_bar_type);
-        }
 
         /**
          * Downloading file in background thread
@@ -701,7 +590,7 @@ public class MainActivity extends Activity implements OnCancelListener {
         protected String doInBackground(String... f_url) {
             int count;
             try {
-                URL url = new URL(f_url[0]);
+            	URL url = new URL(f_url[0]);
                 URLConnection conection = url.openConnection();
                 conection.connect();
 
@@ -726,40 +615,380 @@ public class MainActivity extends Activity implements OnCancelListener {
 
                 while ((count = input.read(data)) != -1) {
                     total += count;
-                    // publishing the progress....
-                    // After this onProgressUpdate will be called
                     publishProgress("" + (int) ((total * 100) / lenghtOfFile));
                     percentage = (int)((total * 100) / lenghtOfFile);
-                    Log.println(1, "hello", "uploading....  " + percentage);
-                    // writing data to file
                     output.write(data, 0, count);
                 }
 
                 // flushing output
                 output.flush();
                 
-                isSuccess = false;
-                if (videoInfo != null) {
-                	dbHelper.updateData(videoInfo.name, videoInfo.paid, true, videoInfo.thumb, videoInfo.fail);
-                	refreshVideos();
-//                	Toast.makeText(MainActivity.this, "Downloading Completed!",Toast.LENGTH_LONG).show();
-                }
-                // closing streams
+             // closing streams
                 output.close();
                 input.close();
+            	
+                isSuccess = false;
+                
+        	    editor.putBoolean("downloaded", true);	    
+        	    editor.commit();
+        		
+        		List<Video> listArr = null;
+        		ProductsPlistParsing parseHandler = new ProductsPlistParsing(MainActivity.this);
+        		try {
+        			listArr = parseHandler.getProductsPlistValues(Global.plist_path);
+        		} catch (FileNotFoundException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		} catch (XmlPullParserException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
+        		//dbHelper.emptyTable();
+        		for (int i=0; i<listArr.size(); i++) {
+        			Video videoRow = listArr.get(i);
+        			VideoDB xyz = dbHelper.getData(videoRow.name);
+        			if (xyz == null) {
+        				VideoDB row = new VideoDB();
+            			row.caption = videoRow.caption;
+            			row.image = videoRow.image;
+            			row.name = videoRow.name;
+            			row.video = videoRow.video;
+            			if (videoRow.paid.endsWith("1")) 
+            				row.paid = true;
+            			else 
+            				row.paid = false;
+            			dbHelper.insertData(row);
+        			}
+        		}
+        	
+        		videoList = dbHelper.getAllVideos(false);
+
+        		VideoDB row = videoList.get(0);
+        		DownloadThumbFromURL thumbHD = new DownloadThumbFromURL();
+        		thumbHD.out_filename = Global.file_dir + row.image;
+        		thumbHD.videoInfo = row;
+                thumbHD.execute(Global.server_path+row.image);
 
             } catch (Exception e) {
-                Log.e("Error: ", e.getMessage());
-                if (percentage > 0 && videoInfo != null) {
-                	dbHelper.updateData(videoInfo.name, videoInfo.paid, true, videoInfo.thumb, true);
-                	refreshVideos();
-//                	Toast.makeText(MainActivity.this, "Downloading Failed!",Toast.LENGTH_LONG).show();
+                if (percentage > 0) {
+                	DownloadFileFromURL downloadHD = new DownloadFileFromURL();
+                    downloadHD.out_filename = Global.plist_path;
+                    downloadHD.execute(Global.file_url);
+                } else if (flag_downloadHistory) {
+                	MainActivity.this.runOnUiThread(Timer_Tick);
+                	mProgressHUD.dismiss();
+                } else {
+                	MainActivity.this.runOnUiThread(Timer_Error);
+                }
+            }
+            return null;
+        }
+    }
+    
+    class DownloadSRTFromURL extends AsyncTask<String, String, String> {
+
+    	public boolean isSuccess = true;
+    	public String out_filename;
+    	public int percentage = 0;
+
+        /**
+         * Downloading file in background thread
+         * */
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+            	URL url = new URL(f_url[0]);
+                URLConnection conection = url.openConnection();
+                conection.connect();
+
+                // this will be useful so that you can show a tipical 0-100%
+                // progress bar
+                int lenghtOfFile = conection.getContentLength();
+
+                // download the file
+                InputStream input = new BufferedInputStream(url.openStream(),
+                        8192);
+
+                File f = new File(Global.extern_dir, Global.app);
+                if (!f.exists()) {
+                    f.mkdirs();
+                }
+                // Output stream
+                OutputStream output = new FileOutputStream(out_filename);
+
+                byte data[] = new byte[1024];
+
+                long total = 0;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+                    percentage = (int)((total * 100) / lenghtOfFile);
+                    output.write(data, 0, count);
+                }
+
+                // flushing output
+                output.flush();
+                
+             // closing streams
+                output.close();
+                input.close();
+            	
+                isSuccess = false;
+            } catch (Exception e) {
+            }
+            return null;
+        }
+    }
+    
+    class DownloadThumbFromURL extends AsyncTask<String, String, String> {
+
+    	public boolean isSuccess = true;
+    	public String out_filename;
+    	public VideoDB videoInfo = null;
+    	public int percentage = 0;
+
+    	@Override
+		protected void onProgressUpdate(String... values) {
+//			mProgressHUD.setMessage(values[0]);
+			super.onProgressUpdate(values);
+		}
+
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            if (videoInfo == null) return "";
+            try {
+        		File file = new File(out_filename);
+                if(!file.exists())
+                {
+	            	URL url = new URL(f_url[0]);
+	                URLConnection conection = url.openConnection();
+	                conection.connect();
+	
+	                // this will be useful so that you can show a tipical 0-100%
+	                // progress bar
+	                int lenghtOfFile = conection.getContentLength();
+	
+	                // download the file
+	                InputStream input = new BufferedInputStream(url.openStream(),
+	                        8192);
+	
+	                File f = new File(Global.extern_dir, Global.app);
+	                if (!f.exists()) {
+	                    f.mkdirs();
+	                }
+	                // Output stream
+	                OutputStream output = new FileOutputStream(out_filename);
+	
+	                byte data[] = new byte[1024];
+	
+	                long total = 0;
+	
+	                while ((count = input.read(data)) != -1) {
+	                    total += count;
+	                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+	                    percentage = (int)((total * 100) / lenghtOfFile);
+	                    output.write(data, 0, count);
+	                }
+	
+	                // flushing output
+	                output.flush();
+	                
+	             // closing streams
+	                output.close();
+	                input.close();
+            	}
+            	
+                isSuccess = false;
+            	dbHelper.updateData(videoInfo.name, videoInfo.paid, videoInfo.download, true, videoInfo.fail, videoInfo.iap, videoInfo.etc);
+            	if (videoInfo.caption.equals("in_padurea_cu_alune.srt")) {
+            		InputStream in = getResources().openRawResource(R.raw.in_padurea_cu_alune);
+            		FileOutputStream out = new FileOutputStream(Global.file_dir+"in_padurea_cu_alune.mp4");
+            		byte[] buff = new byte[1024];
+            		int read = 0;
+
+            		try {
+            		   while ((read = in.read(buff)) > 0) {
+            		      out.write(buff, 0, read);
+            		   }
+            		} finally {
+            		     in.close();
+            		     out.close();
+            		}
+            		
+            		InputStream in1 = getResources().openRawResource(R.raw.in_padurea_cu_alune_srt);
+            		FileOutputStream out1 = new FileOutputStream(Global.file_dir+"in_padurea_cu_alune.srt");
+            		byte[] buff1 = new byte[1024];
+            		int read1 = 0;
+
+            		try {
+            		   while ((read1 = in1.read(buff1)) > 0) {
+            		      out1.write(buff1, 0, read1);
+            		   }
+            		} finally {
+            		     in1.close();
+            		     out1.close();
+            		}
+
+            		dbHelper.updateData(videoInfo.name, videoInfo.paid, true, true, false, videoInfo.iap, videoInfo.etc);
+            	}
+            	videoList = dbHelper.getAllVideos(false);
+            	
+            	boolean in_download = false;
+            	for (int i=0; i<videoList.size(); i++) {
+            		VideoDB videoRow = videoList.get(i);
+            		if (!videoRow.thumb) {
+            			DownloadThumbFromURL thumbHD = new DownloadThumbFromURL();
+    					thumbHD.videoInfo = videoList.get(i);
+    					thumbHD.out_filename = Global.file_dir + thumbHD.videoInfo.image;
+    			        thumbHD.execute(Global.server_path+thumbHD.videoInfo);
+    			        in_download = true;
+    			        if (i == 10) {
+    			        	mProgressHUD.dismiss();			
+                    		MainActivity.this.runOnUiThread(Timer_Tick);
+    			        }
+    			        publishProgress("downloaded+"+i);
+    			        Log.println(1, "!!!!!!!!!!!!!!", "download --------------  "+i);
+            			break;
+            		}
+            	}
+            	if (!in_download) {
+            		mProgressHUD.dismiss();			
+            		MainActivity.this.runOnUiThread(Timer_Tick);
+            	}
+            } catch (Exception e) {
+                Log.e("Error: >>>>>>>>>>>>>>>>>>>>>>", "+++++++++++++++++++++++++++++"+e.getMessage());
+            	DownloadThumbFromURL thumbHD = new DownloadThumbFromURL();
+				thumbHD.out_filename = Global.file_dir + videoInfo.image;
+				thumbHD.videoInfo = videoInfo;
+		        thumbHD.execute(Global.server_path+videoInfo.image);
+            }
+
+            return null;
+        }
+        
+        
+    }
+    
+    class DownloadVideoFromURL extends AsyncTask<String, String, String> {
+
+    	public boolean isSuccess = true;
+    	public String out_filename;
+    	public VideoDB videoInfo = null;
+    	public int percentage = 0;
+
+        @Override
+		protected void onProgressUpdate(String... values) {
+//			mProgressHUD.setMessage(values[0]);
+			super.onProgressUpdate(values);
+		}
+        /**
+         * Downloading file in background thread
+         * */
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+        		File file = new File(out_filename);
+                if(!file.exists())
+                {
+	            	URL url = new URL(f_url[0]);
+	                URLConnection conection = url.openConnection();
+	                conection.connect();
+	
+	                // this will be useful so that you can show a tipical 0-100%
+	                // progress bar
+	                int lenghtOfFile = conection.getContentLength();
+	
+	                // download the file
+	                InputStream input = new BufferedInputStream(url.openStream(),
+	                        8192);
+	
+	                File f = new File(Global.extern_dir, Global.app);
+	                if (!f.exists()) {
+	                    f.mkdirs();
+	                }
+	                // Output stream
+	                OutputStream output = new FileOutputStream(out_filename);
+	
+	                byte data[] = new byte[1024];
+	
+	                long total = 0;
+	
+	                while ((count = input.read(data)) != -1) {
+	                    total += count;
+	                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+	                    percentage = (int)((total * 100) / lenghtOfFile);
+	                    output.write(data, 0, count);
+	                    Log.e("Download: ", "+++++++++++++++++++++++++++++        "+percentage);
+	                }
+	
+	                // flushing output
+	                output.flush();
+	                
+	             // closing streams
+	                output.close();
+	                input.close();
+            	}
+            	
+                isSuccess = false;
+                
+            	dbHelper.updateData(videoInfo.name, videoInfo.paid, true, videoInfo.thumb, videoInfo.fail, videoInfo.iap, videoInfo.etc);
+            	if (!Global.isPlayPage) MainActivity.this.runOnUiThread(Timer_Tick);
+            	for (int ii=0; ii<Global.downloadList.size(); ii++) {
+            		if (Global.downloadList.get(ii).name.equals(videoInfo.name)) {
+            			Global.downloadList.remove(ii);
+            			break;
+            		}
+            	}
+            } catch (Exception e) {
+                Log.e("Error: >>>>>>>>>>>>>>>>>>>>>>", "+++++++++++++++++++++++++++++"+e.getMessage());
+                if (percentage > 0) {
+                	dbHelper.updateData(videoInfo.name, videoInfo.paid, true, videoInfo.thumb, true, videoInfo.iap, videoInfo.etc);
+                	if (!Global.isPlayPage) MainActivity.this.runOnUiThread(Timer_Tick);
+                	for (int ii=0; ii<Global.downloadList.size(); ii++) {
+                		if (Global.downloadList.get(ii).name.equals(videoInfo.name)) {
+                			Global.downloadList.remove(ii);
+                			break;
+                		}
+                	}
+                } else {
+                	
                 }
             }
 
             return null;
         }
+        
+        
     }
+    
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+        	refreshVideos();
+        }
+    };
+    
+    private Runnable Timer_Error = new Runnable() {
+        public void run() {
+        	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+			builder.setMessage("Couldn't connect server.")
+		       .setTitle("Error!");
+			// Add the buttons
+			builder.setNegativeButton("OK", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			               // User cancelled the dialog
+			           }
+			       });
+
+			// Create the AlertDialog
+			AlertDialog dialog = builder.create();
+			dialog.show();
+
+        }
+    };
     
     public class ProductsPlistParsing {   
     	Context context;
@@ -864,22 +1093,28 @@ public class MainActivity extends Activity implements OnCancelListener {
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        }
-	 //here you get the plistValues.
+	        
+	        //here you get the plistValues.
 	        return listResult;
 	    }
 	}
     
-    @Override
+    @SuppressLint("NewApi") @Override
     protected void onResume() {
+    	
     	dbHelper.getWritableDatabase();
 		setting_shuffle = sharedPreferences.getBoolean("s_shuffle", true);
-        sb_set5.setChecked(setting_shuffle);
+        Global.isPlayPage = false;
+        Global.isSettingPage = false;
+        refreshVideos();
+        if (setting_bgmusic) Global.music.start();
     	super.onResume();
     }
 
     @Override
     protected void onPause() {
     	dbHelper.close();
+    	if (setting_bgmusic) Global.music.pause();
     	super.onPause();
     }
     
@@ -887,5 +1122,76 @@ public class MainActivity extends Activity implements OnCancelListener {
 	public void onCancel(DialogInterface dialog) {
 //		this.cancel(true);
 		mProgressHUD.dismiss();
-	}	
+	}
+    
+    private void showCalcDailogBox(final VideoDB video){
+		final Dialog dialog =new Dialog(this);
+		 
+        //tell the Dialog to use the dialog.xml as it's layout description
+		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dg_calc);
+    //    String title="Total: "+ PaymentSettings.CURRENCY_SIGN+totalbillAmount;
+        
+
+        //final EditText et_answer = (EditText) dialog.findViewById(R.id.et_answer);
+        ImageView iv_ok = (ImageView) dialog.findViewById(R.id.iv_ok);
+        ImageView iv_cancel = (ImageView) dialog.findViewById(R.id.iv_cancel);
+        
+        iv_ok.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	            dialog.dismiss();
+	            showPayDailogBox(video);
+            }
+    	});
+        iv_cancel.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	            dialog.dismiss();
+	 
+            }
+    	});
+
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+	}
+    
+    private void showPayDailogBox(VideoDB video){
+		final Dialog dialog =new Dialog(this);
+		 
+        //tell the Dialog to use the dialog.xml as it's layout description
+		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dg_payment);
+    //    String title="Total: "+ PaymentSettings.CURRENCY_SIGN+totalbillAmount;
+        ImageView iv_cancel = (ImageView) dialog.findViewById(R.id.iv_cancel);
+        TextView tv_pay_some = (TextView) dialog.findViewById(R.id.tv_pay_some);
+        TextView tv_pay_all = (TextView) dialog.findViewById(R.id.tv_pay_all);
+        iv_cancel.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	            dialog.dismiss();
+	 
+            }
+    	});
+        
+        tv_pay_some.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	            dialog.dismiss();
+	 
+            }
+    	});
+        
+        tv_pay_all.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	            dialog.dismiss();
+	 
+            }
+    	});
+        
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+	}
+
 }

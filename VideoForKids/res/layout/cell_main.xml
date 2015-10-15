@@ -10,11 +10,11 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="4dp"
         android:layout_weight="1"
-        android:background="@android:drawable/toast_frame"
+        android:layout_marginBottom="1dp"
+        android:background="@drawable/toast_frame"
         android:gravity="center"
-        android:paddingBottom="8dp"
+        android:paddingBottom="6dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="0dp" >
@@ -53,7 +53,11 @@
                 android:layout_centerVertical="true"
                 android:text="Un Elefant Se Legana"
                 android:textColor="#555"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:ellipsize="end"
+    			android:singleLine="true"
+    			android:paddingLeft="2dp"
+    			android:paddingRight="2dp" />
         </RelativeLayout>
     </RelativeLayout>
 
@@ -61,11 +65,11 @@
         android:id="@+id/rl_main_second"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="1"
-        android:background="@android:drawable/toast_frame"
+        android:background="@drawable/toast_frame"
         android:gravity="center"
-        android:paddingBottom="8dp"
+        android:paddingBottom="6dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="0dp" >
@@ -76,12 +80,13 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/relativelayout_label1"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true" >
+            android:layout_alignParentTop="true"
+            android:background="@drawable/video_thumnail_sample" >
 
             <Button
-                android:id="@+id/btn_main_cell_2"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+        		android:id="@+id/btn_main_cell_2"        
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:background="@drawable/download" />
@@ -103,7 +108,11 @@
                 android:layout_centerVertical="true"
                 android:text="Un Elefant Se Legana"
                 android:textColor="#555"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:ellipsize="end"
+    			android:singleLine="true"
+    			android:paddingLeft="2dp"
+    			android:paddingRight="2dp" />
         </RelativeLayout>
     </RelativeLayout>
 
