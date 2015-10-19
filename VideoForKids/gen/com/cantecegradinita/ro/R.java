@@ -1362,6 +1362,7 @@ containing a value of this type.
         public static final int btn_player_order=0x7f090057;
         public static final int btn_player_repeat=0x7f090055;
         public static final int btn_player_start=0x7f090054;
+        public static final int btn_restore=0x7f090092;
         public static final int btn_search_cancel=0x7f090047;
         public static final int btn_setting_back=0x7f090067;
         public static final int btn_setting_row=0x7f09008a;
@@ -1402,7 +1403,7 @@ containing a value of this type.
         public static final int ll_main_tb=0x7f090045;
         public static final int ll_setting_tab1=0x7f090070;
         public static final int ll_setting_tab2=0x7f090071;
-        public static final int message=0x7f090091;
+        public static final int message=0x7f090094;
         public static final int middle=0x7f090012;
         public static final int never=0x7f090009;
         public static final int none=0x7f090010;
@@ -1443,7 +1444,7 @@ containing a value of this type.
         public static final int showCustom=0x7f090007;
         public static final int showHome=0x7f090004;
         public static final int showTitle=0x7f090006;
-        public static final int spinnerImageView=0x7f090090;
+        public static final int spinnerImageView=0x7f090093;
         public static final int split_action_bar=0x7f09001e;
         public static final int submit_area=0x7f090039;
         public static final int svMain=0x7f090063;
@@ -1452,16 +1453,18 @@ containing a value of this type.
         public static final int tabMode=0x7f090002;
         public static final int tbl_setting_tab1=0x7f090072;
         public static final int tbl_setting_tab2=0x7f09007a;
-        public static final int textView2=0x7f09008b;
+        public static final int textView1=0x7f090090;
+        public static final int textView2=0x7f090091;
         public static final int title=0x7f09002b;
         public static final int top_action_bar=0x7f090020;
         public static final int tv_main_text1=0x7f090080;
         public static final int tv_main_text2=0x7f090085;
-        public static final int tv_pay_all=0x7f09008f;
-        public static final int tv_pay_some=0x7f09008e;
+        public static final int tv_pay_all=0x7f09008e;
+        public static final int tv_pay_some=0x7f09008f;
         public static final int tv_play=0x7f090087;
         public static final int tv_play_title=0x7f09004f;
         public static final int tv_player_time=0x7f090056;
+        public static final int tv_random_calc=0x7f09008b;
         public static final int tv_setting_corrupted=0x7f090089;
         public static final int tv_setting_row=0x7f090088;
         public static final int tv_setting_title=0x7f09006f;

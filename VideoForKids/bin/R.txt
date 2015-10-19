@@ -401,6 +401,7 @@ int id btn_play_prev 0x7f090050
 int id btn_player_order 0x7f090057
 int id btn_player_repeat 0x7f090055
 int id btn_player_start 0x7f090054
+int id btn_restore 0x7f090092
 int id btn_search_cancel 0x7f090047
 int id btn_setting_back 0x7f090067
 int id btn_setting_row 0x7f09008a
@@ -441,7 +442,7 @@ int id ll_bottom 0x7f090061
 int id ll_main_tb 0x7f090045
 int id ll_setting_tab1 0x7f090070
 int id ll_setting_tab2 0x7f090071
-int id message 0x7f090091
+int id message 0x7f090094
 int id middle 0x7f090012
 int id never 0x7f090009
 int id none 0x7f090010
@@ -482,7 +483,7 @@ int id shortcut 0x7f09002e
 int id showCustom 0x7f090007
 int id showHome 0x7f090004
 int id showTitle 0x7f090006
-int id spinnerImageView 0x7f090090
+int id spinnerImageView 0x7f090093
 int id split_action_bar 0x7f09001e
 int id submit_area 0x7f090039
 int id svMain 0x7f090063
@@ -491,16 +492,18 @@ int id sv_setting 0x7f090079
 int id tabMode 0x7f090002
 int id tbl_setting_tab1 0x7f090072
 int id tbl_setting_tab2 0x7f09007a
-int id textView2 0x7f09008b
+int id textView1 0x7f090090
+int id textView2 0x7f090091
 int id title 0x7f09002b
 int id top_action_bar 0x7f090020
 int id tv_main_text1 0x7f090080
 int id tv_main_text2 0x7f090085
-int id tv_pay_all 0x7f09008f
-int id tv_pay_some 0x7f09008e
+int id tv_pay_all 0x7f09008e
+int id tv_pay_some 0x7f09008f
 int id tv_play 0x7f090087
 int id tv_play_title 0x7f09004f
 int id tv_player_time 0x7f090056
+int id tv_random_calc 0x7f09008b
 int id tv_setting_corrupted 0x7f090089
 int id tv_setting_row 0x7f090088
 int id tv_setting_title 0x7f09006f

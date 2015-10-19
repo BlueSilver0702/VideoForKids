@@ -27,8 +27,8 @@ public final class R {
 		public static final int spinner_9 = 0x7f0200b9;
 	}
 	public static final class id {
-		public static final int message = 0x7f090091;
-		public static final int spinnerImageView = 0x7f090090;
+		public static final int message = 0x7f090094;
+		public static final int spinnerImageView = 0x7f090093;
 	}
 	public static final class layout {
 		public static final int main = 0x7f030026;
