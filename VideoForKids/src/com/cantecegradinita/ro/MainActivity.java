@@ -58,6 +58,7 @@ import com.cantecegradinita.utils.DBHelperFraction;
 import com.cantecegradinita.utils.Global;
 import com.cantecegradinita.utils.Video;
 import com.cantecegradinita.utils.VideoDB;
+import com.example.android.trivialdrivesample.util.IabException;
 import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
 import com.example.android.trivialdrivesample.util.Inventory;
@@ -87,6 +88,9 @@ public class MainActivity extends Activity implements OnCancelListener {
     boolean setting_searchfield;
     boolean setting_shuffle;
     boolean setting_autoplay;
+    
+    boolean subscrite_month = false;
+    boolean subscrite_year = false;
 
     boolean flag_downloadHistory;
     boolean flag_init_downloaded;
@@ -127,6 +131,9 @@ public class MainActivity extends Activity implements OnCancelListener {
 		setting_searchfield = sharedPreferences.getBoolean("s_searchfield", true);
 		setting_shuffle = sharedPreferences.getBoolean("s_shuffle", true);
 		setting_autoplay = sharedPreferences.getBoolean("s_autoplay", true);
+		
+		subscrite_year = sharedPreferences.getBoolean("subscripte_year", false);
+		subscrite_month = sharedPreferences.getBoolean("subscripte_month", false);
 		
 		dbHelper = new DBHelperFraction(this);
         dbHelper.getWritableDatabase();
@@ -178,10 +185,6 @@ public class MainActivity extends Activity implements OnCancelListener {
                     complain("Problem setting up in-app billing: " + result);
                     return;
                 }
-
-                // Hooray, IAB is fully set up. Now, let's get an inventory of stuff we own.
-                Log.d(TAG, "Setup successful. Querying inventory.");
-                mHelper.queryInventoryAsync(mGotInventoryListener);
             }
         });
     }
@@ -243,15 +246,33 @@ public class MainActivity extends Activity implements OnCancelListener {
 					}
 				});
             } else if (videoRow1.paid) {
-            	tempb1.setVisibility(View.VISIBLE);
-            	tempb1.setBackgroundResource(R.drawable.lock);
-            	rl_bg1.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						// TODO Auto-generated method stub
-						tempb1.performClick();
-					}
-				});
+            	if (subscrite_month || subscrite_year) {
+            		tempb1.setVisibility(View.INVISIBLE);
+                	rl_bg1.setOnClickListener(new OnClickListener() {
+    					@Override
+    					public void onClick(View v) {
+    						// TODO Auto-generated method stub
+    						if (setting_soundeffect) Global.effect.start();
+    						Bundle extradataBundle=new Bundle();
+    						extradataBundle.putString("video", videoRow1.name);
+    						Bundle bundle=new Bundle();
+    						bundle.putBundle("databundle",extradataBundle);
+    						Intent sd=new Intent(MainActivity.this,PlayerActivity.class);
+    						sd.putExtras(bundle);
+    				        startActivity(sd);
+    					}
+    				});
+            	} else {
+            		tempb1.setVisibility(View.VISIBLE);
+                	tempb1.setBackgroundResource(R.drawable.lock);
+                	rl_bg1.setOnClickListener(new OnClickListener() {
+    					@Override
+    					public void onClick(View v) {
+    						// TODO Auto-generated method stub
+    						tempb1.performClick();
+    					}
+    				});
+            	}
             } else {
             	rl_bg1.setOnClickListener(new OnClickListener() {
 					@Override
@@ -336,15 +357,33 @@ public class MainActivity extends Activity implements OnCancelListener {
 						}
 					});
                 } else if (videoRow2.paid) {
-                	tempb2.setVisibility(View.VISIBLE);
-                	tempb2.setBackgroundResource(R.drawable.lock);
-                	rl_bg2.setOnClickListener(new OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							// TODO Auto-generated method stub
-							tempb2.performClick();
-						}
-					});
+                	if (subscrite_month || subscrite_year) {
+                		tempb2.setVisibility(View.INVISIBLE);
+                    	rl_bg2.setOnClickListener(new OnClickListener() {
+    						@Override
+    						public void onClick(View v) {
+    							// TODO Auto-generated method stub
+    							if (setting_soundeffect) Global.effect.start();
+    							Bundle extradataBundle=new Bundle();
+        						extradataBundle.putString("video", videoRow2.name);
+        						Bundle bundle=new Bundle();
+        						bundle.putBundle("databundle",extradataBundle);
+        						Intent sd=new Intent(MainActivity.this,PlayerActivity.class);
+        						sd.putExtras(bundle);
+        				        startActivity(sd);
+    						}
+    					});
+                	} else {
+                		tempb2.setVisibility(View.VISIBLE);
+                    	tempb2.setBackgroundResource(R.drawable.lock);
+                    	rl_bg2.setOnClickListener(new OnClickListener() {
+    						@Override
+    						public void onClick(View v) {
+    							// TODO Auto-generated method stub
+    							tempb2.performClick();
+    						}
+    					});
+                	}
                 } else {
                 	rl_bg2.setOnClickListener(new OnClickListener() {
 						@Override
@@ -488,6 +527,7 @@ public class MainActivity extends Activity implements OnCancelListener {
 				refreshVideos();
 			}
         });
+        
         btn_main_total_icon.setOnClickListener(new OnClickListener() {
         	@Override
 			public void onClick(View v) {
@@ -1186,8 +1226,10 @@ public class MainActivity extends Activity implements OnCancelListener {
         dialog.show();
 	}
     
+    Dialog mPayDialog;
     private void showPayDailogBox(VideoDB video){
 		final Dialog dialog =new Dialog(this);
+		mPayDialog = dialog;
 		 
         //tell the Dialog to use the dialog.xml as it's layout description
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -1247,7 +1289,15 @@ public class MainActivity extends Activity implements OnCancelListener {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				
+				// Hooray, IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d(TAG, "Setup successful. Querying inventory.");
+                mHelper.queryInventoryAsync(mGotInventoryListener);
+				//				try {
+//					mHelper.queryInventory(false, null, null);
+//				} catch (IabException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 			}
 		});
         
@@ -1273,14 +1323,22 @@ public class MainActivity extends Activity implements OnCancelListener {
                     verifyDeveloperPayload(monthlyPurchase));
             Log.d(TAG, "User " + (mSubscribedToMonthly ? "HAS" : "DOES NOT HAVE") 
                         + " monthly subscription.");
+            if (mSubscribedToMonthly) {
+            	editor.putBoolean("subscripte_month", true);
+            	editor.commit();
+            }
             
          // Do we have the yearly pay plan?
-            Purchase yearlyPurchase = inventory.getPurchase(IAB_MONTH);
+            Purchase yearlyPurchase = inventory.getPurchase(IAB_YEAR);
             mSubscribedToYearly = (yearlyPurchase != null && 
                     verifyDeveloperPayload(yearlyPurchase));
             Log.d(TAG, "User " + (mSubscribedToYearly ? "HAS" : "DOES NOT HAVE") 
                         + " yearly subscription.");
-
+            if (mSubscribedToYearly) {
+            	editor.putBoolean("subscripte_year", true);
+            	editor.commit();
+            }
+            
             updateUi();
             setWaitScreen(false);
             Log.d(TAG, "Initial inventory query finished; enabling main UI.");
@@ -1316,16 +1374,22 @@ public class MainActivity extends Activity implements OnCancelListener {
                 Log.d(TAG, "Monthly subscription purchased.");
                 alert("Thank you for subscribing to Monthly!");
                 mSubscribedToMonthly = true;
+                editor.putBoolean("subscripte_month", true);
+            	editor.commit();
                 updateUi();
                 setWaitScreen(false);
-            } else if (purchase.getSku().equals(IAB_MONTH)) {
+            } else if (purchase.getSku().equals(IAB_YEAR)) {
                 // bought the yearly subscription
                 Log.d(TAG, "Yearly subscription purchased.");
                 alert("Thank you for subscribing to Yearly!");
                 mSubscribedToYearly = true;
+                editor.putBoolean("subscripte_year", true);
+            	editor.commit();
                 updateUi();
                 setWaitScreen(false);
             }
+            
+            
         }
     };
 
@@ -1379,14 +1443,18 @@ public class MainActivity extends Activity implements OnCancelListener {
     
     // updates UI to reflect model
     public void updateUi() {
-        
+    	
+    	refreshVideos();
+    	if (mPayDialog != null)
+    		mPayDialog.dismiss();
+//    	mProgressHUD.dismiss();
     }
     
     void setWaitScreen(boolean set) {
         if (set) {
-        	mProgressHUD = ProgressHUD.show(MainActivity.this,"Please wait ...", true,false,this);
+//        	mProgressHUD = ProgressHUD.show(MainActivity.this,"Please wait ...", true,false,this);
         } else {
-        	mProgressHUD.dismiss();
+//        	mProgressHUD.dismiss();
         }
     }
 }
