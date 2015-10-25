@@ -54,15 +54,12 @@ import android.widget.Toast;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.ViewAnimator;
 
+import com.anjlab.android.iab.v3.BillingProcessor;
+import com.anjlab.android.iab.v3.TransactionDetails;
 import com.cantecegradinita.utils.DBHelperFraction;
 import com.cantecegradinita.utils.Global;
 import com.cantecegradinita.utils.Video;
 import com.cantecegradinita.utils.VideoDB;
-import com.example.android.trivialdrivesample.util.IabException;
-import com.example.android.trivialdrivesample.util.IabHelper;
-import com.example.android.trivialdrivesample.util.IabResult;
-import com.example.android.trivialdrivesample.util.Inventory;
-import com.example.android.trivialdrivesample.util.Purchase;
 import com.walnutlabs.android.ProgressHUD;
 
 public class MainActivity extends Activity implements OnCancelListener {
@@ -100,15 +97,16 @@ public class MainActivity extends Activity implements OnCancelListener {
     boolean isTablet = false;
 
 	// In-app billing constants
-	final String IAB_MONTH = "monthly";
-	final String IAB_YEAR = "yearly";
-	boolean mSubscribedToMonthly = false;
-	boolean mSubscribedToYearly = false;
-    // (arbitrary) request code for the purchase flow
-    final int RC_REQUEST = 10001;
-    final String TAG = "TrivialDrive";
-    
-    IabHelper mHelper;
+    private static final String LOG_TAG = "iabv3";
+
+    // PRODUCT & SUBSCRIPTION IDS
+    private static final String LICENSE_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq7a/1O7Onb2AjCvb1n83lRuNODL2lt2Ce/aa4ywqCtaZorwOguEAn4A28H+2MKY5VA+fNcU3hyHGT1v8RUSAl/nyBVAUb9mX+kddahbg9+viiKb00ALo/XRMx4gvxT/79c9LN1SSDS0/nk3FGpdwxZY/DaaSenDc/ve8ePHx6of45SdfY2z4zBAmXQp/E6gNoJiYASY4pLg3I8l26nLN9XnlGaZHOu1V8BXtw/XnBbQZBVeC9Vg2rNRl5WqeBzWJWqR9XMB4qY3umS4yQojyDpIauJQwmz1tgnoFmZNojewJiovh5RUmyuH4h29M4ffmQTmEkPhYUR0CkRBOG21OMwIDAQAB"; // PUT YOUR MERCHANT KEY HERE;
+    // put your Google merchant id here (as stated in public profile of your Payments Merchant Center)
+    // if filled library will provide protection against Freedom alike Play Market simulators
+    private static final String MERCHANT_ID="14401274259466212738";
+
+	private BillingProcessor bp;
+	private boolean readyToPurchase = false;
 	
     @SuppressLint("NewApi") @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,30 +161,8 @@ public class MainActivity extends Activity implements OnCancelListener {
         
 //        refreshVideos();
         
-        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq7a/1O7Onb2AjCvb1n83lRuNODL2lt2Ce/aa4ywqCtaZorwOguEAn4A28H+2MKY5VA+fNcU3hyHGT1v8RUSAl/nyBVAUb9mX+kddahbg9+viiKb00ALo/XRMx4gvxT/79c9LN1SSDS0/nk3FGpdwxZY/DaaSenDc/ve8ePHx6of45SdfY2z4zBAmXQp/E6gNoJiYASY4pLg3I8l26nLN9XnlGaZHOu1V8BXtw/XnBbQZBVeC9Vg2rNRl5WqeBzWJWqR9XMB4qY3umS4yQojyDpIauJQwmz1tgnoFmZNojewJiovh5RUmyuH4h29M4ffmQTmEkPhYUR0CkRBOG21OMwIDAQAB";
-        
         // Create the helper, passing it our context and the public key to verify signatures with
-        Log.d(TAG, "Creating IAB helper.");
-        mHelper = new IabHelper(this, base64EncodedPublicKey);
-        
-        // enable debug logging (for a production application, you should set this to false).
-        mHelper.enableDebugLogging(true);
-
-        // Start setup. This is asynchronous and the specified listener
-        // will be called once setup completes.
-        Log.d(TAG, "Starting setup.");
-        
-        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            public void onIabSetupFinished(IabResult result) {
-                Log.d(TAG, "Setup finished.");
-
-                if (!result.isSuccess()) {
-                    // Oh noes, there was a problem.
-                    complain("Problem setting up in-app billing: " + result);
-                    return;
-                }
-            }
-        });
+        installSubscription();
     }
 
     
@@ -1227,6 +1203,10 @@ public class MainActivity extends Activity implements OnCancelListener {
 	}
     
     Dialog mPayDialog;
+    
+    private static final String SUBSCRIPTION_MONTH_ID = "monthly";
+    private static final String SUBSCRIPTION_YEAR_ID = "yearly";
+    
     private void showPayDailogBox(VideoDB video){
 		final Dialog dialog =new Dialog(this);
 		mPayDialog = dialog;
@@ -1251,37 +1231,26 @@ public class MainActivity extends Activity implements OnCancelListener {
         tv_pay_some.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
-	        	Log.d(TAG, "Monthly button clicked.");
-	            
-	            
-	            if (!mHelper.subscriptionsSupported()) {
-	                complain("Subscriptions not supported on your device yet. Sorry!");
+	        	if (!readyToPurchase) {
+	                showToast("Billing not initialized.");
 	                return;
 	            }
-	            String payload = ""; 
-	            setWaitScreen(true);
-	            Log.d(TAG, "Launching purchase flow for monthly subscription.");
-	            mHelper.launchPurchaseFlow(MainActivity.this,
-	                    IAB_MONTH, IabHelper.ITEM_TYPE_SUBS, 
-	                    RC_REQUEST, mPurchaseFinishedListener, payload);    
+	            
+	        	bp.subscribe(MainActivity.this,SUBSCRIPTION_MONTH_ID);
+	        	dialog.dismiss();
             }
     	});
         
         tv_pay_all.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
-	        	Log.d(TAG, "Yearly button clicked.");
-	            
-	            if (!mHelper.subscriptionsSupported()) {
-	                complain("Subscriptions not supported on your device yet. Sorry!");
+	        	if (!readyToPurchase) {
+	                showToast("Billing not initialized.");
 	                return;
 	            }
-	            String payload = ""; 
-	            setWaitScreen(true);
-	            Log.d(TAG, "Launching purchase flow for yearly subscription.");
-	            mHelper.launchPurchaseFlow(MainActivity.this,
-	                    IAB_YEAR, IabHelper.ITEM_TYPE_SUBS, 
-	                    RC_REQUEST, mPurchaseFinishedListener, payload);	 
+	        	
+	        	bp.subscribe(MainActivity.this,SUBSCRIPTION_YEAR_ID);
+	        	dialog.dismiss();
             }
     	});
         
@@ -1290,14 +1259,32 @@ public class MainActivity extends Activity implements OnCancelListener {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				// Hooray, IAB is fully set up. Now, let's get an inventory of stuff we own.
-                Log.d(TAG, "Setup successful. Querying inventory.");
-                mHelper.queryInventoryAsync(mGotInventoryListener);
-				//				try {
-//					mHelper.queryInventory(false, null, null);
-//				} catch (IabException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+				if (bp.loadOwnedPurchasesFromGoogle()) {
+					if (bp.isSubscribed(SUBSCRIPTION_YEAR_ID)) {
+	                	subscrite_year = true;
+	                	editor.putBoolean("subscripte_year", true);
+	            		editor.commit();
+	            		showToast("Yearly Subscription Restored!");
+	                } else if (bp.isSubscribed(SUBSCRIPTION_MONTH_ID)) {
+	                	subscrite_month = true;
+	                	editor.putBoolean("subscripte_month", true);
+	            		editor.commit();
+	            		showToast("Monthly Subscription Restored!");
+	                } else {
+	                	subscrite_year = false;
+	                	subscrite_month = false;
+	                	editor.putBoolean("subscripte_year", false);
+	                	editor.putBoolean("subscripte_month", false);
+	            		editor.commit();
+	            		showToast("No Subscription Results!");
+	                }
+	                refreshVideos();
+                } else {
+                	showToast("Restore Failed");
+                }
+				
+				dialog.dismiss();
+//				showToast("Click");
 			}
 		});
         
@@ -1306,155 +1293,81 @@ public class MainActivity extends Activity implements OnCancelListener {
 	}
 
     ////////////////////////////////         purchase setup
-    // Listener that's called when we finish querying the items and subscriptions we own
-    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
-            Log.d(TAG, "Query inventory finished.");
-            if (result.isFailure()) {
-                complain("Failed to query inventory: " + result);
-                return;
-            }
-
-            Log.d(TAG, "Query inventory was successful.");
-            
-            // Do we have the monthly pay plan?
-            Purchase monthlyPurchase = inventory.getPurchase(IAB_MONTH);
-            mSubscribedToMonthly = (monthlyPurchase != null && 
-                    verifyDeveloperPayload(monthlyPurchase));
-            Log.d(TAG, "User " + (mSubscribedToMonthly ? "HAS" : "DOES NOT HAVE") 
-                        + " monthly subscription.");
-            if (mSubscribedToMonthly) {
-            	editor.putBoolean("subscripte_month", true);
-            	editor.commit();
-            }
-            
-         // Do we have the yearly pay plan?
-            Purchase yearlyPurchase = inventory.getPurchase(IAB_YEAR);
-            mSubscribedToYearly = (yearlyPurchase != null && 
-                    verifyDeveloperPayload(yearlyPurchase));
-            Log.d(TAG, "User " + (mSubscribedToYearly ? "HAS" : "DOES NOT HAVE") 
-                        + " yearly subscription.");
-            if (mSubscribedToYearly) {
-            	editor.putBoolean("subscripte_year", true);
-            	editor.commit();
-            }
-            
-            updateUi();
-            setWaitScreen(false);
-            Log.d(TAG, "Initial inventory query finished; enabling main UI.");
+    private void installSubscription() {
+    	if(!BillingProcessor.isIabServiceAvailable(this)) {
+            showToast("In-app billing service is unavailable, please upgrade Android Market/Play to version >= 3.9.16");
         }
-    };
-    
-    /** Verifies the developer payload of a purchase. */
-    boolean verifyDeveloperPayload(Purchase p) {
-        String payload = p.getDeveloperPayload();
-        Log.d(TAG, "Developer payload:  " + payload);
-        return true;
+
+        bp = new BillingProcessor(this, LICENSE_KEY, MERCHANT_ID, new BillingProcessor.IBillingHandler() {
+            @Override
+            public void onProductPurchased(String productId, TransactionDetails details) {
+				showToast("ProductPurchased: " + productId);
+				if (productId.equals(SUBSCRIPTION_YEAR_ID)) {
+					subscrite_year = true;
+                	editor.putBoolean("subscripte_year", true);
+            		editor.commit();
+            		refreshVideos();
+				} else {
+					subscrite_month = true;
+                	editor.putBoolean("subscripte_month", true);
+            		editor.commit();
+            		refreshVideos();
+				}
+				
+//                updateTextViews();
+            }
+            @Override
+            public void onBillingError(int errorCode, Throwable error) {
+                showToast("onBillingError: " + Integer.toString(errorCode));
+            }
+            @Override
+            public void onBillingInitialized() {
+//				showToast("onBillingInitialized");
+                readyToPurchase = true;
+//                updateTextViews();
+            }
+            @Override
+            public void onPurchaseHistoryRestored() {
+//                showToast("Purchase History Restored");
+//                for(String sku : bp.listOwnedProducts())
+//                    Log.d(LOG_TAG, "Owned Managed Product: " + sku);
+                for(String sku : bp.listOwnedSubscriptions())
+                    Log.d(LOG_TAG, "Owned Subscription: " + sku);
+                
+                if (bp.isSubscribed(SUBSCRIPTION_YEAR_ID)) {
+                	subscrite_year = true;
+                	editor.putBoolean("subscripte_year", true);
+            		editor.commit();
+                } else if (bp.isSubscribed(SUBSCRIPTION_MONTH_ID)) {
+                	subscrite_month = true;
+                	editor.putBoolean("subscripte_month", true);
+            		editor.commit();
+                } else {
+                	subscrite_year = false;
+                	subscrite_month = false;
+                	editor.putBoolean("subscripte_year", false);
+                	editor.putBoolean("subscripte_month", false);
+            		editor.commit();
+                }
+//                refreshVideos();
+            }
+        });
     }
-
-    // Callback for when a purchase is finished
-    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-            Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
-            if (result.isFailure()) {
-                complain("Error purchasing: " + result);
-                setWaitScreen(false);
-                return;
-            }
-            if (!verifyDeveloperPayload(purchase)) {
-                complain("Error purchasing. Authenticity verification failed.");
-                setWaitScreen(false);
-                return;
-            }
-
-            Log.d(TAG, "Purchase successful.");
-
-            if (purchase.getSku().equals(IAB_MONTH)) {
-                // bought the monthly subscription
-                Log.d(TAG, "Monthly subscription purchased.");
-                alert("Thank you for subscribing to Monthly!");
-                mSubscribedToMonthly = true;
-                editor.putBoolean("subscripte_month", true);
-            	editor.commit();
-                updateUi();
-                setWaitScreen(false);
-            } else if (purchase.getSku().equals(IAB_YEAR)) {
-                // bought the yearly subscription
-                Log.d(TAG, "Yearly subscription purchased.");
-                alert("Thank you for subscribing to Yearly!");
-                mSubscribedToYearly = true;
-                editor.putBoolean("subscripte_year", true);
-            	editor.commit();
-                updateUi();
-                setWaitScreen(false);
-            }
-            
-            
-        }
-    };
-
-    // Called when consumption is complete
-    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-        @Override
-    	public void onConsumeFinished(Purchase purchase, IabResult result) {
-            Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
-
-            if (result.isSuccess()) {
-                Log.d(TAG, "Consumption successful. Provisioning.");
-                alert("You filled 1/4 tank. Your tank is now " + "/4 full!");
-            }
-            else {
-                complain("Error while consuming: " + result);
-            }
-            updateUi();
-            setWaitScreen(false);
-            Log.d(TAG, "End consumption flow.");
-        }
-    };   
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
-
-        // Pass on the activity result to the helper for handling
-        if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
-            // not handled, so handle it ourselves (here's where you'd
-            // perform any handling of activity results not related to in-app
-            // billing...
+        if (!bp.handleActivityResult(requestCode, resultCode, data))
             super.onActivityResult(requestCode, resultCode, data);
-        }
-        else {
-            Log.d(TAG, "onActivityResult handled by IABUtil.");
-        }
-    }
-    
-    void complain(String message) {
-        Log.e(TAG, "**** TrivialDrive Error: " + message);
-        alert("Error: " + message);
     }
 
-    void alert(String message) {
-        AlertDialog.Builder bld = new AlertDialog.Builder(this);
-        bld.setMessage(message);
-        bld.setNeutralButton("OK", null);
-        Log.d(TAG, "Showing alert dialog: " + message);
-        bld.create().show();
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
     
-    // updates UI to reflect model
-    public void updateUi() {
-    	
-    	refreshVideos();
-    	if (mPayDialog != null)
-    		mPayDialog.dismiss();
-//    	mProgressHUD.dismiss();
-    }
-    
-    void setWaitScreen(boolean set) {
-        if (set) {
-//        	mProgressHUD = ProgressHUD.show(MainActivity.this,"Please wait ...", true,false,this);
-        } else {
-//        	mProgressHUD.dismiss();
-        }
+	@Override
+    public void onDestroy() {
+        if (bp != null)
+            bp.release();
+        super.onDestroy();
     }
 }

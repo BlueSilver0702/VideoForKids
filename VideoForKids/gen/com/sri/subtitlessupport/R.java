@@ -8,8 +8,8 @@ package com.sri.subtitlessupport;
 
 public final class R {
 	public static final class dimen {
-		public static final int activity_horizontal_margin = 0x7f060000;
-		public static final int activity_vertical_margin = 0x7f060001;
+		public static final int activity_horizontal_margin = 0x7f080000;
+		public static final int activity_vertical_margin = 0x7f080001;
 	}
 	public static final class drawable {
 		public static final int ic_launcher = 0x7f020087;
@@ -30,8 +30,8 @@ public final class R {
 		public static final int jellies_subs = 0x7f050004;
 	}
 	public static final class string {
-		public static final int action_settings = 0x7f070002;
-		public static final int app_name = 0x7f070000;
-		public static final int hello_world = 0x7f070001;
+		public static final int action_settings = 0x7f060002;
+		public static final int app_name = 0x7f060000;
+		public static final int hello_world = 0x7f060001;
 	}
 }

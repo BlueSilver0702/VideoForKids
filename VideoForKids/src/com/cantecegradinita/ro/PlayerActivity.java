@@ -547,10 +547,10 @@ import android.widget.VideoView;
 	    mVideoView.setVideoURI(video);
 	    
 	    if (Global.pausePlaying && videoInfo.name.equals(Global.pauseVideo)) {
-    		btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
-    		is_play = false;
+    		btn_play_start.setBackgroundResource(R.drawable.btn_play_bg);
+    		is_play = true;
     		mVideoView.seekTo(Global.pauseTime);
-    		mVideoView.pause();
+    		mVideoView.start();
     		zoom(false);
     		String time = (getDate(Global.pauseTime, "mm:ss"));
         	tv_player_time.setText(time);
@@ -818,9 +818,9 @@ import android.widget.VideoView;
     
     protected void onResume() {
     	if (Global.pausePlaying && videoInfo.name.equals(Global.pauseVideo)) {
-    		btn_play_start.setBackgroundResource(R.drawable.btn_play_play);
-    		is_play = false;
-    		mVideoView.pause();
+    		btn_play_start.setBackgroundResource(R.drawable.btn_play_bg);
+    		is_play = true;
+    		mVideoView.start();
     		mVideoView.seekTo(Global.pauseTime);
     		
     		zoom(false);
