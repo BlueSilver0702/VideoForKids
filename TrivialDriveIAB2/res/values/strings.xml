@@ -1,0 +1,16 @@
+<resources>
+
+<string name="app_name">TrivialDrive</string>
+<string name="hello_world">Hello world!</string>
+<string name="menu_settings">Settings</string>
+<string name="title_activity_main">TrivialDrive</string>
+
+<!-- Strings related to in-app billing and purchases-->
+<string name="iab_setup_failed">Unable to set up app for making in-game purchases.</string>
+
+<string name="iab_receipt_coins_20k">Your purchase of 20,000 coins is confirmed.</string>
+<string name="iab_receipt_coins_100k">Your purchase of 100,000 coins is confirmed.</string>
+<string name="iab_receipt_crystals_100">Your purchase of 100 crystals is confirmed.</string>
+<string name="iab_receipt_crystals_1000">Your purchase of 1000 crystals is confirmed.</string>
+
+</resources>
