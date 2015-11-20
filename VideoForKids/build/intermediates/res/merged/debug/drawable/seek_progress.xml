@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+android:id/SecondaryProgress"
+        android:drawable="@drawable/progress_red"/>
+    <item
+        android:id="@+android:id/progress"
+        android:drawable="@drawable/progress_cyan"/>
+
+</layer-list><!-- From: file:/E:/1.%20Android/VideoForKids_AndroidStudio/VideoForKids/res/drawable/seek_progress.xml -->

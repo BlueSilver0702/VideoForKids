@@ -1,0 +1,6 @@
+include ':AndroidProgressHUD'
+include ':library'
+include ':Subtitles-support'
+include ':android-support-v7-appcompat'
+include ':VideoForKids'
+include ':SwitchButton'

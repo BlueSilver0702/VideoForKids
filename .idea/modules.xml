@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AndroidProgressHUD/AndroidProgressHUD.iml" filepath="$PROJECT_DIR$/AndroidProgressHUD/AndroidProgressHUD.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Subtitles-support/Subtitles-support.iml" filepath="$PROJECT_DIR$/Subtitles-support/Subtitles-support.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SwitchButton/SwitchButton.iml" filepath="$PROJECT_DIR$/SwitchButton/SwitchButton.iml" />
+      <module fileurl="file://$PROJECT_DIR$/VideoForKids/VideoForKids.iml" filepath="$PROJECT_DIR$/VideoForKids/VideoForKids.iml" />
+      <module fileurl="file://$PROJECT_DIR$/VideoForKids_AndroidStudio.iml" filepath="$PROJECT_DIR$/VideoForKids_AndroidStudio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-support-v7-appcompat/android-support-v7-appcompat.iml" filepath="$PROJECT_DIR$/android-support-v7-appcompat/android-support-v7-appcompat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android">
+
+		   <TextView
+		       android:id="@+id/tv_setting_row"
+		       android:layout_width="wrap_content"
+		       android:layout_height="wrap_content"
+		       android:layout_marginLeft="15dp"
+		       android:layout_centerVertical="true"
+		       android:singleLine="true"
+		       android:text="Un Elefant Se Legana"
+		       android:textColor="#FFFFFF"
+		       android:textSize="13sp" />
+			
+		   <TextView
+		       android:id="@+id/tv_setting_corrupted"
+		       android:layout_width="wrap_content"
+		       android:layout_height="wrap_content"
+		       android:layout_marginRight="15dp"
+		       android:layout_centerVertical="true"
+		       android:singleLine="true"
+		       android:layout_toLeftOf="@+id/btn_setting_row"
+		       android:text="Corrupted Video"
+		       android:textColor="#FFFFFF"
+		       android:textSize="13sp" />
+		   
+		   <Button
+		       android:id="@+id/btn_setting_row"
+		       android:layout_width="78dp"
+		       android:layout_height="25dp"
+		       android:layout_alignParentRight="true"
+		       android:layout_centerVertical="true"
+		       android:layout_marginRight="12dp"
+		       android:background="@drawable/btn_download" />
+		   
+		   <TextView
+		       android:id="@+id/tv_setting_download"
+		       android:layout_width="78dp"
+		       android:layout_height="25dp"
+		       android:layout_alignParentRight="true"
+		       android:layout_centerVertical="true"
+		       android:layout_marginRight="12dp"
+		       android:gravity="center_vertical|center_horizontal"
+		       android:singleLine="true"
+		       android:text="0%"
+		       android:textColor="#FFFFFF"
+		       android:textSize="13sp"
+		       android:visibility="invisible" />
+		   	
+	</RelativeLayout>
+
+<!-- From: file:/E:/1.%20Android/VideoForKids_AndroidStudio/VideoForKids/res/layout/cell_setting.xml -->

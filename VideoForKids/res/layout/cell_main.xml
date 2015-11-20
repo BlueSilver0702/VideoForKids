@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:progressbar="http://schemas.android.com/apk/res/com.cantecegradinita.ro"
+    android:layout_width="170dp"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="2"
+    tools:context=".MainActivity" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginBottom="1dp"
+        android:background="@drawable/toast_frame"
+        android:gravity="center"
+        android:paddingBottom="6dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="0dp" >
+
+       <RelativeLayout
+            android:id="@+id/rl_main_img1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/relativelayout_label"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/video_thumnail_sample" >
+
+            <Button
+        		android:id="@+id/btn_main_cell_1"        
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/download" />
+            
+			<com.cantecegradinita.utils.CircleProgressBar
+	            android:id="@+id/pb_circle1"
+	            android:layout_width="40dp"
+	            android:layout_height="40dp"
+	            progressbar:circleStyle="STROKE"
+	            progressbar:maxProgress="100"
+	            progressbar:progressTextColor="#ffffffff"
+	            progressbar:progressTextSize="14sp"
+	            progressbar:progressTextVisibility="true"
+	            progressbar:ringNormalColor="#4fffffff"
+	            progressbar:ringProgressColor="#9fffffff"
+	            progressbar:ringWidth="3dp"
+	            android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true" 
+                android:visibility="invisible"/>
+            
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/relativelayout_label"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/bottom_radius" >
+
+            <TextView
+                android:id="@+id/tv_main_text1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:text="Un Elefant Se Legana"
+                android:textColor="#555"
+                android:textSize="12sp"
+                android:ellipsize="end"
+    			android:singleLine="true"
+    			android:paddingLeft="2dp"
+    			android:paddingRight="2dp" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_main_second"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/toast_frame"
+        android:gravity="center"
+        android:paddingBottom="6dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="0dp" >
+
+        <RelativeLayout
+            android:id="@+id/rl_main_img2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/relativelayout_label1"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/video_thumnail_sample" >
+
+            <Button
+        		android:id="@+id/btn_main_cell_2"        
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/download" />
+
+            <com.cantecegradinita.utils.CircleProgressBar
+	            android:id="@+id/pb_circle2"
+	            android:layout_width="40dp"
+	            android:layout_height="40dp"
+	            progressbar:circleStyle="STROKE"
+	            progressbar:maxProgress="100"
+	            progressbar:progressTextColor="#ffffffff"
+	            progressbar:progressTextSize="14sp"
+	            progressbar:progressTextVisibility="true"
+	            progressbar:ringNormalColor="#4fffffff"
+	            progressbar:ringProgressColor="#9fffffff"
+	            progressbar:ringWidth="3dp"
+	            android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true" 
+                android:visibility="invisible"/>
+            
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/relativelayout_label1"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/bottom_radius" >
+
+            <TextView
+                android:id="@+id/tv_main_text2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:text="Un Elefant Se Legana"
+                android:textColor="#555"
+                android:textSize="12sp"
+                android:ellipsize="end"
+    			android:singleLine="true"
+    			android:paddingLeft="2dp"
+    			android:paddingRight="2dp" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</LinearLayout>

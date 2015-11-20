@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="E:\1. Android\VideoForKids_Work\library\res"/><source path="E:\1. Android\VideoForKids_Work\library\build\generated\res\rs\debug"/><source path="E:\1. Android\VideoForKids_Work\library\build\generated\res\resValues\debug"/></dataSet><dataSet config="debug"><source path="E:\1. Android\VideoForKids_Work\library\build-types\debug\res"/></dataSet><mergedItems/></merger>

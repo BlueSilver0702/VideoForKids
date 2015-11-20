@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <solid android:color="#ff404040" />
+
+    <corners
+        android:bottomLeftRadius="8dp"
+        android:bottomRightRadius="8dp"
+        android:topLeftRadius="8dp"
+        android:topRightRadius="8dp" />
+
+</shape><!-- From: file:/E:/1.%20Android/VideoForKids_Work/AndroidProgressHUD/res/drawable-mdpi/progress_hud_bg.xml --><!-- From: file:/E:/1.%20Android/VideoForKids_Work/AndroidProgressHUD/build/intermediates/bundles/debug/res/drawable-mdpi-v4/progress_hud_bg.xml -->

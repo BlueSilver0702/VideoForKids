@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_bk"
+    android:paddingBottom="15dp"
+    android:paddingTop="7dp" >
+
+    <TextView
+        android:id="@+id/tv_pay_all"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/tv_pay_some"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/item_green_bg"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="$9.99 per year            SUBSCRIBE"
+        android:textColor="#ffffff"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Subscribe to Unlock All Songs!"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#039c03" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="Offline Access, No Ads and monthly updates"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#000" />
+
+    <TextView
+        android:id="@+id/tv_pay_some"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/item_red_bg"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="$0.99 per month        SUBSCRIBE"
+        android:textColor="#ffffff"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_pay_all"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp" >
+
+        <ImageView
+            android:id="@+id/iv_cancel"
+            android:layout_width="120dp"
+            android:layout_height="25dp"
+            android:src="@drawable/btn_cancel" />
+
+        <Button
+            android:id="@+id/btn_restore"
+            android:layout_width="wrap_content"
+            android:layout_height="25dp"
+            android:layout_marginLeft="40dp"
+            android:background="@android:color/transparent"
+            android:text="Restore Subscription"
+            android:textColor="#047bfe"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+</RelativeLayout><!-- From: file:/E:/1.%20Android/VideoForKids_AndroidStudio/VideoForKids/res/layout/dg_payment.xml -->
